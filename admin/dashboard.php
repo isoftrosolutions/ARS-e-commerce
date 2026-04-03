@@ -10,7 +10,7 @@ try {
     $total_orders = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
     $total_sales = $pdo->query("SELECT SUM(total_amount) FROM orders WHERE payment_status = 'Paid'")->fetchColumn() ?: 0;
     $total_products = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
-    $total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
+    $total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'")->fetchColumn();
     $low_stock = $pdo->query("SELECT COUNT(*) FROM products WHERE stock < 10")->fetchColumn();
 
     // Recent Orders

@@ -1,10 +1,12 @@
 <?php
+// config/mail.php
+require_once __DIR__ . '/env.php';
+
 return [
-    'host'       => 'smtp.gmail.com', // Change this to Mailgun or SendGrid for production
-    'port'       => 587,
-    'username'   => 'your-email@gmail.com',
-    'password'   => 'your-app-password',
-    'from_email' => 'no-reply@ars.com',
-    'from_name'  => 'ARS Store'
+    'host'       => env('SMTP_HOST', 'smtp.gmail.com'),
+    'port'       => (int)env('SMTP_PORT', 587),
+    'username'   => env('SMTP_USERNAME', ''),
+    'password'   => env('SMTP_PASSWORD', ''),
+    'from_email' => env('SMTP_FROM_EMAIL', 'noreply@arsshop.com'),
+    'from_name'  => env('SMTP_FROM_NAME', 'ARS Store')
 ];
-?>

@@ -1,28 +1,37 @@
 <?php
 // config/db.php
-$host = 'localhost';
-$dbname = 'ars_ecommerce';
-$user = 'root';
-$pass = '';
+require_once __DIR__ . '/env.php';
+
+$host = env('DB_HOST', 'localhost');
+$dbname = env('DB_NAME', 'ars_ecommerce');
+$user = env('DB_USER', 'root');
+$pass = env('DB_PASSWORD', '');
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
-    // Set PDO error mode to exception
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // Use associative arrays for results
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // In production, log error instead of die
-    die("Database Connection Error: " . $e->getMessage());
+    error_log("Database Connection Error: " . $e->getMessage());
+    die("Unable to connect to database. Please try again later.");
 }
 
-// Start global session
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_samesite', 'Strict');
     session_start();
+    
+    if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > env('SESSION_LIFETIME', 7200))) {
+        session_unset();
+        session_destroy();
+        session_start();
+    }
+    $_SESSION['LAST_ACTIVITY'] = time();
 }
 
-// Define some site-wide constants
-define('SITE_NAME', 'Nepal E-Shop');
-define('CURRENCY', 'Rs. ');
-define('UPLOAD_DIR', 'uploads/');
-?>
+define('SITE_NAME', env('SITE_NAME', 'ARS Shop'));
+define('CURRENCY', env('CURRENCY', 'Rs. '));
+define('UPLOAD_DIR', env('UPLOAD_DIR', 'uploads/'));
+define('FREE_SHIPPING_THRESHOLD', (float)env('FREE_SHIPPING_THRESHOLD', 1000));
+define('SHIPPING_FEE', (float)env('SHIPPING_FEE', 150));

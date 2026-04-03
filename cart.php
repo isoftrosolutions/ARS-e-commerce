@@ -1,20 +1,39 @@
 <?php
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/coupon.php';
+
 $page_title = "My Shopping Bag";
 require_once __DIR__ . '/includes/header.php';
 
 $cart = $_SESSION['cart'] ?? [];
 $subtotal = 0;
 foreach ($cart as $item) {
-    $subtotal += $item['price'] * $item['qty'];
+    $subtotal += (float)$item['price'] * (int)$item['qty'];
 }
 
-$shipping_threshold = 1000;
-$shipping_fee = ($subtotal >= $shipping_threshold || $subtotal == 0) ? 0 : 150;
-$grand_total = $subtotal + $shipping_fee;
+$shipping_fee = ($subtotal >= FREE_SHIPPING_THRESHOLD || $subtotal == 0) ? 0 : SHIPPING_FEE;
+
+$coupon_discount = 0;
+$applied_coupon = null;
+
+if (isset($_SESSION['coupon'])) {
+    $result = apply_coupon($_SESSION['coupon']['code'], $subtotal);
+    if ($result['valid']) {
+        $coupon_discount = $result['discount'];
+        $applied_coupon = $_SESSION['coupon'];
+    } else {
+        unset($_SESSION['coupon']);
+    }
+}
+
+$grand_total = max(0, $subtotal + $shipping_fee - $coupon_discount);
+
+$coupon_error = $_SESSION['coupon_error'] ?? null;
+$coupon_success = $_SESSION['coupon_success'] ?? null;
+unset($_SESSION['coupon_error'], $_SESSION['coupon_success']);
 ?>
 
 <div class="container mx-auto px-4 md:px-6 py-12">
-    <!-- Breadcrumbs -->
     <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">
         <a href="index.php" class="hover:text-brand-600 transition-colors">Home</a>
         <i data-lucide="chevron-right" class="w-3 h-3"></i>
@@ -22,7 +41,6 @@ $grand_total = $subtotal + $shipping_fee;
     </div>
 
     <div class="flex flex-col lg:flex-row gap-12">
-        <!-- Main Cart Column -->
         <div class="flex-grow">
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
                 <h1 class="text-3xl font-black text-slate-900 tracking-tight">Shopping Bag</h1>
@@ -35,19 +53,18 @@ $grand_total = $subtotal + $shipping_fee;
                         <i data-lucide="shopping-bag" class="w-10 h-10"></i>
                     </div>
                     <h3 class="text-2xl font-black text-slate-900 mb-2">Your bag is empty</h3>
-                    <p class="text-slate-500 mb-8 max-w-sm mx-auto">Looks like you haven't found anything yet. Explore our latest arrivals and fill it up!</p>
+                    <p class="text-slate-500 mb-8 max-w-sm mx-auto">Looks like you haven't found anything yet. Explore our latest arrivals!</p>
                     <a href="shop.php" class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl">Start Shopping</a>
                 </div>
             <?php else: ?>
-                <!-- Free Shipping Progress -->
-                <?php if($subtotal < $shipping_threshold): ?>
+                <?php if($subtotal < FREE_SHIPPING_THRESHOLD): ?>
                     <div class="bg-blue-50 border border-blue-100 p-6 rounded-3xl mb-8">
                         <div class="flex items-center justify-between mb-2">
                             <p class="text-xs font-bold text-blue-800 uppercase tracking-wide">Almost there!</p>
-                            <p class="text-xs font-bold text-blue-800">Add <?= formatPrice($shipping_threshold - $subtotal) ?> more for FREE shipping</p>
+                            <p class="text-xs font-bold text-blue-800">Add <?= formatPrice(FREE_SHIPPING_THRESHOLD - $subtotal) ?> more for FREE shipping</p>
                         </div>
                         <div class="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-600 transition-all duration-500" style="width: <?= ($subtotal / $shipping_threshold) * 100 ?>%"></div>
+                            <div class="h-full bg-blue-600 transition-all duration-500" style="width: <?= min(100, ($subtotal / FREE_SHIPPING_THRESHOLD) * 100) ?>%"></div>
                         </div>
                     </div>
                 <?php else: ?>
@@ -55,16 +72,15 @@ $grand_total = $subtotal + $shipping_fee;
                         <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
                             <i data-lucide="check" class="w-5 h-5"></i>
                         </div>
-                        <p class="text-sm font-bold text-emerald-800 tracking-tight">Congratulations! You've unlocked <span class="underline underline-offset-4">FREE Delivery</span> for this order.</p>
+                        <p class="text-sm font-bold text-emerald-800 tracking-tight">FREE Delivery unlocked!</p>
                     </div>
                 <?php endif; ?>
 
-                <!-- Cart Items List -->
                 <div class="space-y-6">
                     <?php foreach ($cart as $id => $item): ?>
                     <div class="bg-white p-6 md:p-8 rounded-[2rem] soft-shadow border border-slate-100 flex flex-col md:flex-row items-center gap-8 relative group">
                         <div class="w-32 h-32 bg-slate-50 rounded-2xl border border-slate-100 p-4 flex-shrink-0">
-                            <img src="<?= $item['image'] ? UPLOAD_DIR . $item['image'] : 'https://via.placeholder.com/150' ?>" 
+                            <img src="<?= !empty($item['image']) ? UPLOAD_DIR . htmlspecialchars($item['image']) : 'https://via.placeholder.com/150' ?>" 
                                  class="w-full h-full object-contain" alt="<?= htmlspecialchars($item['name']) ?>">
                         </div>
                         
@@ -74,15 +90,15 @@ $grand_total = $subtotal + $shipping_fee;
                             
                             <div class="flex items-center justify-center md:justify-start gap-4">
                                 <div class="flex items-center bg-slate-100 rounded-xl p-1">
-                                    <a href="cart-action.php?action=update&id=<?= $id ?>&qty=<?= $item['qty'] - 1 ?>" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-brand-600 transition-colors">
+                                    <a href="cart-action.php?action=update&id=<?= (int)$id ?>&qty=<?= max(1, $item['qty'] - 1) ?>" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-brand-600 transition-colors">
                                         <i data-lucide="minus" class="w-4 h-4"></i>
                                     </a>
-                                    <span class="w-10 text-center text-sm font-black text-slate-900"><?= $item['qty'] ?></span>
-                                    <a href="cart-action.php?action=update&id=<?= $id ?>&qty=<?= $item['qty'] + 1 ?>" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-brand-600 transition-colors">
+                                    <span class="w-10 text-center text-sm font-black text-slate-900"><?= (int)$item['qty'] ?></span>
+                                    <a href="cart-action.php?action=update&id=<?= (int)$id ?>&qty=<?= $item['qty'] + 1 ?>" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-brand-600 transition-colors">
                                         <i data-lucide="plus" class="w-4 h-4"></i>
                                     </a>
                                 </div>
-                                <a href="cart-action.php?action=remove&id=<?= $id ?>" class="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors">Remove</a>
+                                <a href="cart-action.php?action=remove&id=<?= (int)$id ?>" class="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors">Remove</a>
                             </div>
                         </div>
 
@@ -96,17 +112,34 @@ $grand_total = $subtotal + $shipping_fee;
             <?php endif; ?>
         </div>
 
-        <!-- Summary Sidebar -->
         <?php if (!empty($cart)): ?>
         <div class="w-full lg:w-96 flex-shrink-0">
             <div class="bg-white rounded-[2.5rem] p-8 md:p-10 soft-shadow border border-slate-100 sticky top-28">
                 <h3 class="text-xl font-black text-slate-900 mb-8 tracking-tight">Order Summary</h3>
+
+                <?php if ($coupon_error): ?>
+                <div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm font-bold">
+                    <?= htmlspecialchars($coupon_error) ?>
+                </div>
+                <?php endif; ?>
                 
+                <?php if ($coupon_success): ?>
+                <div class="bg-green-50 border border-green-100 text-green-600 px-4 py-3 rounded-xl mb-6 text-sm font-bold">
+                    <?= htmlspecialchars($coupon_success) ?>
+                </div>
+                <?php endif; ?>
+
                 <div class="space-y-4 mb-8 pb-8 border-b border-slate-100">
                     <div class="flex justify-between items-center text-sm font-bold">
                         <span class="text-slate-400">Subtotal</span>
                         <span class="text-slate-900"><?= formatPrice($subtotal) ?></span>
                     </div>
+                    <?php if ($coupon_discount > 0): ?>
+                    <div class="flex justify-between items-center text-sm font-bold">
+                        <span class="text-slate-400">Coupon (<?= htmlspecialchars($applied_coupon['code']) ?>)</span>
+                        <span class="text-emerald-600">-<?= formatPrice($coupon_discount) ?></span>
+                    </div>
+                    <?php endif; ?>
                     <div class="flex justify-between items-center text-sm font-bold">
                         <span class="text-slate-400">Shipping</span>
                         <span class="<?= $shipping_fee == 0 ? 'text-emerald-600' : 'text-slate-900' ?>">
@@ -115,13 +148,22 @@ $grand_total = $subtotal + $shipping_fee;
                     </div>
                 </div>
 
-                <!-- Coupon Field -->
                 <div class="mb-8">
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Promo Code</label>
-                    <div class="flex gap-2">
-                        <input type="text" placeholder="Enter code" class="flex-grow px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500/20 outline-none">
-                        <button class="px-4 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-brand-600 transition-all uppercase tracking-widest">Apply</button>
-                    </div>
+                    <form action="cart-action.php" method="POST" class="flex gap-2">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="apply_coupon">
+                        <input type="text" name="coupon_code" placeholder="Enter code" value="<?= htmlspecialchars($_SESSION['coupon']['code'] ?? '') ?>"
+                               class="flex-grow px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500/20 outline-none uppercase">
+                        <button type="submit" class="px-4 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-brand-600 transition-all uppercase tracking-widest">
+                            Apply
+                        </button>
+                    </form>
+                    <?php if ($applied_coupon): ?>
+                    <a href="cart-action.php?action=remove_coupon" class="block text-center text-xs text-red-500 hover:underline mt-2">
+                        Remove coupon
+                    </a>
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex justify-between items-center mb-10">

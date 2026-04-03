@@ -1,0 +1,564 @@
+:root {
+    --primary: #ff5e21; /* Vibrant Orange from Screenshot */
+    --primary-hover: #e64a19;
+    --secondary: #2d2d2d;
+    --accent: #2ecc71;
+    --bg-main: #f4f6f8;
+    --bg-card: #ffffff;
+    --text-main: #333333;
+    --text-muted: #777777;
+    --danger: #ff3b30;
+    --success: #4cd964;
+    --border: #eeeeee;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --radius-pill: 50px;
+    --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* Top Bar */
+.top-bar {
+    background: #ff5e21;
+    color: white;
+    padding: 0.5rem 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.top-bar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Header */
+.navbar {
+    background: #ffffff;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-logo-img {
+    height: 40px;
+    width: auto;
+}
+
+.search-container {
+    flex: 1;
+    display: flex;
+    max-width: 500px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.6rem 1.25rem;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.search-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 1.25rem;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.btn-login {
+    background: var(--primary);
+    color: white;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Hero Section */
+.hero-banner {
+    background: url('https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop') center/cover;
+    height: 400px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.2);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    color: white;
+    max-width: 500px;
+}
+
+.hero-tag {
+    background: #ff5e21;
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+}
+
+.hero-desc {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.btn-hero {
+    background: #ff5e21;
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 4px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Trust Bar */
+.trust-bar {
+    background: beige;
+    padding: 1rem 0;
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 2rem;
+    border-radius: 4px;
+}
+
+/* Category Pills */
+.category-pills {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+.pill {
+    white-space: nowrap;
+    padding: 0.5rem 1.25rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.pill.active, .pill:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Product Cards */
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.items-count { font-size: 0.85rem; color: #888; }
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.product-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    position: relative;
+}
+
+.product-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+
+.discount-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: #ff3b30;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.product-img-wrapper {
+    aspect-ratio: 1;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-img-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.product-meta {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.product-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+    height: 2.4em;
+    overflow: hidden;
+}
+
+.rating {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.star { color: #ffcc00; font-size: 0.8rem; }
+
+.price-box {
+    margin-bottom: 1rem;
+}
+
+.price {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.old-price {
+    font-size: 0.75rem;
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 0.5rem;
+}
+
+.btn-add-cart {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+/* Info Banner (Truck) */
+.info-banner {
+    width: 100%;
+    margin: 4rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.info-banner img { width: 100%; display: block; }
+
+/* Footer */
+.footer {
+    background: #1a0f0a; /* Dark brown/black */
+    color: #ccc;
+    padding: 4rem 0 2rem;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    margin-bottom: 4rem;
+}
+
+.footer-logo {
+    height: 40px;
+    margin-bottom: 1rem;
+}
+
+.footer h4 { color: white; margin-bottom: 1.5rem; font-size: 1rem; }
+
+.footer-links li { margin-bottom: 0.75rem; font-size: 0.85rem; }
+
+.footer-links a:hover { color: var(--primary); }
+
+.copy-text {
+    border-top: 1px solid #333;
+    padding-top: 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* PWA Install Button Styles */
+.pwa-install-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 0 1rem;
+    width: 100%;
+    max-width: 420px;
+}
+
+.pwa-install-card {
+    background: linear-gradient(135deg, #1a0f0a 0%, #2d1810 100%);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    animation: pwa-slide-up 0.5s ease-out, pwa-glow 2s ease-in-out infinite;
+}
+
+@keyframes pwa-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pwa-glow {
+    0%, 100% {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 94, 33, 0.3);
+    }
+}
+
+.pwa-install-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ff5e21 0%, #ff8c42 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.pwa-install-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pwa-install-text strong {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.pwa-install-text span {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+}
+
+.pwa-install-btn {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff5e21 0%, #ff8c42 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.pwa-install-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 94, 33, 0.4);
+}
+
+.pwa-install-btn:active {
+    transform: scale(0.95);
+}
+
+/* Hide on mobile if display-mode is standalone */
+@media (display-mode: standalone) {
+    .pwa-install-container {
+        display: none !important;
+    }
+}
+
+/* PWA Install Footer Section */
+.pwa-install-footer {
+    background: linear-gradient(135deg, #1a0f0a 0%, #2d1810 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.4s ease;
+    visibility: hidden;
+}
+
+.pwa-install-footer.pwa-visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.pwa-install-footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.pwa-install-footer-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #ff5e21 0%, #ff8c42 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.pwa-install-footer-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pwa-install-footer-text strong {
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.pwa-install-footer-text span {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.8rem;
+}
+
+.pwa-install-footer-btn {
+    background: linear-gradient(135deg, #ff5e21 0%, #ff8c42 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.65rem 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+}
+
+.pwa-install-footer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 94, 33, 0.35);
+}
+
+.pwa-install-footer-btn:active {
+    transform: translateY(0);
+}
+
+/* Hide footer install if already installed */
+@media (display-mode: standalone) {
+    .pwa-install-footer {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-content { flex-direction: column; gap: 1rem; }
+    .search-container { width: 100%; }
+    .hero-banner { height: 300px; }
+    .hero-title { font-size: 2rem; }
+}

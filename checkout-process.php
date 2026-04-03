@@ -1,64 +1,93 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/upload.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('checkout.php');
 }
+
+require_csrf();
 
 $cart = $_SESSION['cart'] ?? [];
 if (empty($cart)) {
     redirect('shop.php', "Your cart is empty.", "info");
 }
 
-// 1. Get input data
-$full_name = htmlspecialchars(trim($_POST['full_name']));
-$mobile = htmlspecialchars(trim($_POST['mobile']));
-$address = htmlspecialchars(trim($_POST['address']));
-$notes = htmlspecialchars(trim($_POST['notes']));
-$payment_method = $_POST['payment_method'];
-$transaction_id = $_POST['transaction_id'] ?? '';
+$full_name = sanitize_input($_POST['full_name'] ?? '');
+$mobile = sanitize_input($_POST['mobile'] ?? '');
+$email = sanitize_input($_POST['email'] ?? '');
+$address = sanitize_input($_POST['address'] ?? '');
+$notes = sanitize_input($_POST['notes'] ?? '');
+$payment_method = sanitize_input($_POST['payment_method'] ?? '');
+$transaction_id = sanitize_input($_POST['transaction_id'] ?? '');
 
-// Re-calculate total server-side for security
-$subtotal = 0;
-foreach ($cart as $item) {
-    $subtotal += $item['price'] * $item['qty'];
+$errors = [];
+if (empty($full_name)) $errors[] = 'Name is required';
+if (!validate_mobile($mobile)) $errors[] = 'Invalid mobile number';
+if (empty($address)) $errors[] = 'Address is required';
+if (!in_array($payment_method, ['COD', 'eSewa', 'BankQR'])) $errors[] = 'Invalid payment method';
+
+if (!empty($email) && !validate_email($email)) {
+    $errors[] = 'Invalid email format';
 }
 
-$shipping_threshold = 1000;
-$shipping_fee = ($subtotal >= $shipping_threshold) ? 0 : 150;
+if (!empty($errors)) {
+    redirect('checkout.php', implode(', ', $errors), 'danger');
+}
+
+$subtotal = 0;
+foreach ($cart as $item) {
+    $subtotal += (float)$item['price'] * (int)$item['qty'];
+}
+
+$shipping_fee = ($subtotal >= FREE_SHIPPING_THRESHOLD) ? 0 : SHIPPING_FEE;
 $total_amount = $subtotal + $shipping_fee;
 
-// 2. Handle Payment Proof Upload
 $payment_proof = '';
-if (($payment_method === 'eSewa' || $payment_method === 'BankQR') && isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] === 0) {
-    $file = $_FILES['payment_proof'];
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'proof_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+if (($payment_method === 'eSewa' || $payment_method === 'BankQR') && isset($_FILES['payment_proof'])) {
+    $uploader = new SecureFileUpload('payments');
+    $result = $uploader->upload($_FILES['payment_proof'], 'proof');
     
-    if (move_uploaded_file($file['tmp_name'], UPLOAD_DIR . $filename)) {
-        $payment_proof = $filename;
+    if (!$result['success']) {
+        redirect('checkout.php', $result['error'], 'danger');
     }
+    $payment_proof = $result['filename'];
 }
 
 try {
     $pdo->beginTransaction();
 
-    // Check stock for all items first
+    $stmt = $pdo->prepare("SELECT id, stock, name, price FROM products WHERE id IN (" . implode(',', array_fill(0, count($cart), '?')) . ") FOR UPDATE");
+    $stmt->execute(array_keys($cart));
+    $products = [];
+    while ($row = $stmt->fetch()) {
+        $products[$row['id']] = $row;
+    }
+
     foreach ($cart as $product_id => $item) {
-        $stmt_stock = $pdo->prepare("SELECT stock, name FROM products WHERE id = ?");
-        $stmt_stock->execute([$product_id]);
-        $prod = $stmt_stock->fetch();
-        if ($prod['stock'] < $item['qty']) {
-            throw new Exception("Insufficient stock for: " . $prod['name']);
+        $product_id = (int)$product_id;
+        if (!isset($products[$product_id])) {
+            throw new Exception("Product not found: ID $product_id");
+        }
+        
+        $product = $products[$product_id];
+        if ($product['stock'] < $item['qty']) {
+            throw new Exception("Insufficient stock for: " . $product['name'] . " (Available: " . $product['stock'] . ")");
+        }
+        
+        $stmt = $pdo->prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?");
+        $stmt->execute([$item['qty'], $product_id, $item['qty']]);
+        
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("Failed to reserve stock for: " . $product['name']);
         }
     }
 
     $user_id = $_SESSION['user_id'] ?? null;
     $payment_status = ($payment_method === 'COD') ? 'Pending' : 'Paid';
     $delivery_status = 'Pending';
-    
-    $full_delivery_info = "$full_name ($mobile) | $address";
+    $full_delivery_info = "$full_name ($mobile)" . ($email ? " | $email" : "") . " | $address";
 
     $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, payment_method, payment_status, delivery_status, transaction_id, payment_proof, address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
@@ -75,46 +104,35 @@ try {
     
     $order_id = $pdo->lastInsertId();
 
-    // Add Order Items & Reduce Stock
     $stmt_item = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-    $stmt_stock_update = $pdo->prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
-    
     foreach ($cart as $product_id => $item) {
-        $stmt_item->execute([$order_id, $product_id, $item['qty'], $item['price']]);
-        $stmt_stock_update->execute([$item['qty'], $product_id]);
+        $stmt_item->execute([$order_id, (int)$product_id, $item['qty'], $item['price']]);
     }
 
     $pdo->commit();
 
-    // --- NEW: Email Integration ---
     try {
         require_once __DIR__ . '/includes/classes/EmailManager.php';
         $emailMgr = new EmailManager($pdo);
-        
-        // Get user email if logged in, otherwise use input (assuming guest email exists)
-        $user_email = $_SESSION['user_email'] ?? $email ?? ''; // You might need to capture email in checkout form
+        $user_email = $email ?: ($_SESSION['user_email'] ?? '');
         if ($user_email) {
             $emailMgr->queue($user_email, $full_name, 'order_confirmation', [
                 'name' => $full_name,
                 'order_id' => $order_id,
-                'total' => 'Rs. ' . number_format($total_amount, 2)
+                'total' => formatPrice($total_amount)
             ]);
         }
     } catch (Exception $e) {
-        // Log error but don't break the success flow
         error_log("Email Queue Error: " . $e->getMessage());
     }
-    // ------------------------------
 
-    // Clear cart
     unset($_SESSION['cart']);
-    
     redirect("order-success.php?id=$order_id", "Order placed successfully!");
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
+    error_log("Checkout error: " . $e->getMessage());
     redirect('checkout.php', $e->getMessage(), "danger");
 }
-?>

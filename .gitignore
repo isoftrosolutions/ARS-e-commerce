@@ -1,0 +1,40 @@
+# Environment files (contain secrets)
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Composer
+/vendor/
+
+# Uploads (keep structure, ignore contents)
+uploads/*
+!uploads/.gitkeep
+uploads/payments/*
+!uploads/payments/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+nul
+
+# Backup files
+*.bak
+*.backup
+
+# Build artifacts
+*.min.css
+*.min.js
+node_modules/
