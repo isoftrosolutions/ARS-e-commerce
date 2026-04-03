@@ -1,0 +1,42 @@
+# ARS eCommerce - Apache Configuration
+
+# Custom error pages
+ErrorDocument 404 /ARS/404.php
+ErrorDocument 500 /ARS/500.php
+ErrorDocument 403 /ARS/404.php
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always unset Server
+    Header always unset X-Powered-By
+</IfModule>
+
+# Hide PHP version
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+</IfModule>
+
+# Prevent access to sensitive files
+<FilesMatch "\.(env|sql|log|sh|bak|conf|ini)$">
+    Require all denied
+</FilesMatch>
+
+# Prevent access to dot-files (except .htaccess itself)
+<FilesMatch "^\.(?!htaccess)">
+    Require all denied
+</FilesMatch>
+
+# Prevent directory browsing
+Options -Indexes
+
+# PHP settings
+<IfModule mod_php.c>
+    php_flag expose_php Off
+    php_flag display_errors Off
+    php_value upload_max_filesize 4M
+    php_value post_max_size 8M
+</IfModule>
