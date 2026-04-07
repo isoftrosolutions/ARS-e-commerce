@@ -30,13 +30,34 @@ class EmailManager {
         // Insert into Queue
         $sql = "INSERT INTO email_queue (recipient_email, recipient_name, subject, body_html, scheduled_at) 
                 VALUES (?, ?, ?, ?, ?)";
-        return $this->pdo->prepare($sql)->execute([
+        $result = $this->pdo->prepare($sql)->execute([
             $toEmail, 
             $toName, 
             $subject, 
             $body, 
             $scheduledAt
         ]);
+
+        if ($result && strtotime($scheduledAt) <= time()) {
+            $this->triggerAsyncWorker();
+        }
+
+        return $result;
+    }
+
+    private function triggerAsyncWorker() {
+        if (isset($_SERVER['HTTP_HOST'])) {
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+            $url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/ARS/process_queue_async.php";
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+            curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+            curl_exec($ch);
+            curl_close($ch);
+        }
     }
 
     private function replaceVars($content, $vars) {

@@ -166,6 +166,42 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                 </div>
                 <div class="col-lg-8">
                     <h4 class="fw-bold mb-4">Customer Reviews</h4>
+
+                    <?php if(is_logged_in()): ?>
+                        <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-3">Write a Review</h6>
+                                <form id="reviewForm">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small mb-1">Your Rating</label>
+                                        <div class="rating-input text-warning fs-5">
+                                            <i class="bi bi-star rating-star" data-val="1"></i>
+                                            <i class="bi bi-star rating-star" data-val="2"></i>
+                                            <i class="bi bi-star rating-star" data-val="3"></i>
+                                            <i class="bi bi-star rating-star" data-val="4"></i>
+                                            <i class="bi bi-star rating-star" data-val="5"></i>
+                                        </div>
+                                        <input type="hidden" name="rating" id="ratingInput" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small mb-1">Your Review</label>
+                                        <textarea class="form-control bg-light" name="comment" rows="3" required minlength="5" placeholder="Share your experience with this product..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-dark rounded-2 px-4" id="submitReviewBtn">Submit Review</button>
+                                </form>
+                                <div id="reviewMessage" class="mt-3" style="display:none;"></div>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-light border rounded-3 mb-4 d-flex align-items-center justify-content-between">
+                            <span class="text-muted">Please login to write a review.</span>
+                            <a href="auth/login.php" class="btn btn-sm btn-outline-dark">Login</a>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if(empty($reviews)): ?>
                         <div class="alert alert-info rounded-3">No reviews yet. Be the first to share your thoughts!</div>
                     <?php else: ?>
@@ -204,6 +240,77 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
     
     function addToCart(productId) {
         window.location.href = 'cart-action.php?action=add&id=' + productId;
+    }
+
+    // Review Form Logic
+    const stars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('ratingInput');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const val = this.getAttribute('data-val');
+            ratingInput.value = val;
+            
+            // Update stars visually
+            stars.forEach(s => {
+                const sVal = s.getAttribute('data-val');
+                if (sVal <= val) {
+                    s.classList.remove('bi-star');
+                    s.classList.add('bi-star-fill');
+                } else {
+                    s.classList.remove('bi-star-fill');
+                    s.classList.add('bi-star');
+                }
+            });
+        });
+        
+        star.style.cursor = 'pointer';
+    });
+
+    const reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitReviewBtn');
+            const msgDiv = document.getElementById('reviewMessage');
+            
+            if (!ratingInput.value) {
+                msgDiv.innerHTML = '<div class="alert alert-danger py-2 text-sm">Please select a rating!</div>';
+                msgDiv.style.display = 'block';
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Submitting...';
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('submit-review.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                msgDiv.style.display = 'block';
+                if (result.success) {
+                    msgDiv.innerHTML = `<div class="alert alert-success py-2 text-sm">${result.message}</div>`;
+                    this.reset();
+                    stars.forEach(s => {
+                        s.classList.remove('bi-star-fill');
+                        s.classList.add('bi-star');
+                    });
+                    ratingInput.value = '';
+                } else {
+                    msgDiv.innerHTML = `<div class="alert alert-danger py-2 text-sm">${result.message}</div>`;
+                }
+            } catch (err) {
+                msgDiv.style.display = 'block';
+                msgDiv.innerHTML = '<div class="alert alert-danger py-2 text-sm">An error occurred. Please try again.</div>';
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Submit Review';
+        });
     }
 </script>
 

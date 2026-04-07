@@ -39,11 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($password)) {
         $field_errors['password'] = 'Password is required';
-    } else {
-        $password_errors = validate_password_strength($password);
-        if (!empty($password_errors)) {
-            $field_errors['password'] = implode(', ', $password_errors);
-        }
+    } elseif (strlen($password) < 8) {
+        $field_errors['password'] = 'Password must be at least 8 characters long';
     }
 
     if ($password !== $confirm_password) {
@@ -305,5 +302,22 @@ $page_title = "Create Account";
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function setupPasswordToggle(toggleBtnId, inputId) {
+            const toggleBtn = document.getElementById(toggleBtnId);
+            const input = document.getElementById(inputId);
+            if (toggleBtn && input) {
+                toggleBtn.addEventListener('click', function() {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                });
+            }
+        }
+        setupPasswordToggle('togglePassword', 'password');
+        setupPasswordToggle('toggleConfirmPassword', 'confirm_password');
+    </script>
 </body>
 </html>

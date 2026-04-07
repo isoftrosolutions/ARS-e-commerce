@@ -1,214 +1,245 @@
 <?php
-require_once __DIR__ . '/../includes/functions.php';
+// admin/order-details.php
+require_once __DIR__ . '/auth_check.php';
+require_once __DIR__ . '/layout-parts.php';
 
-if (!is_admin()) {
-    redirect('../auth/login.php', "Access denied.", "danger");
-}
+$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
-$id = (int)($_GET['id'] ?? 0);
 if (!$id) {
-    redirect('orders.php', "Invalid order.", "danger");
+    redirect('orders.php');
 }
 
-// Update status
-if (isset($_POST['update_status'])) {
-    $delivery_status = $_POST['delivery_status'];
-    $payment_status  = $_POST['payment_status'];
-    try {
-        $stmt = $pdo->prepare("UPDATE orders SET delivery_status = ?, payment_status = ? WHERE id = ?");
-        $stmt->execute([$delivery_status, $payment_status, $id]);
-        redirect("order-details.php?id=$id", "Order #ARS-$id updated successfully!");
-    } catch (PDOException $e) {
-        redirect("order-details.php?id=$id", "Error: " . $e->getMessage(), "danger");
-    }
-}
-
-try {
-    $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
-    $stmt->execute([$id]);
-    $order = $stmt->fetch();
-} catch (PDOException $e) {
-    die("DB Error: " . $e->getMessage());
-}
+// Fetch Order
+$stmt = $pdo->prepare("
+    SELECT o.*, u.full_name as customer_name, u.email as customer_email, u.mobile as customer_mobile
+    FROM orders o 
+    JOIN users u ON o.user_id = u.id 
+    WHERE o.id = ?
+");
+$stmt->execute([$id]);
+$order = $stmt->fetch();
 
 if (!$order) {
-    redirect('orders.php', "Order not found.", "danger");
+    redirect('orders.php', 'Order not found.', 'danger');
 }
 
-// Fetch order items
-$stmt_items = $pdo->prepare("
-    SELECT oi.*, p.name AS product_name, p.slug AS product_slug, p.image AS product_image
+// Fetch Order Items
+$stmt = $pdo->prepare("
+    SELECT oi.*, p.name as product_name, p.image as product_image, p.sku
     FROM order_items oi
     JOIN products p ON oi.product_id = p.id
     WHERE oi.order_id = ?
 ");
-$stmt_items->execute([$id]);
-$items = $stmt_items->fetchAll();
+$stmt->execute([$id]);
+$items = $stmt->fetchAll();
 
-$page_title = "Order #ARS-$id";
-include 'includes/header.php';
+admin_header("Order #$id", 'orders');
 ?>
 
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-1">
-            <a href="orders.php" class="text-slate-400 hover:text-brand-600 transition-colors">Orders</a>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
-            <span class="text-slate-800 font-bold">#ARS-<?= $id ?></span>
-        </div>
-        <h1 class="text-2xl font-bold text-slate-800">Order Details</h1>
+<div class="flex-between mb-6" style="margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <h2 style="margin-bottom: 0;">Order #<?php echo $id; ?></h2>
+        <span class="badge badge-<?php echo strtolower($order['delivery_status']); ?>">
+            <?php echo $order['delivery_status']; ?>
+        </span>
     </div>
-    <div class="flex items-center gap-3">
-        <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            <i data-lucide="printer" class="w-4 h-4"></i> Print Invoice
+    <div style="display: flex; gap: 12px;">
+        <a href="orders.php" class="btn btn-ghost">
+            <i data-lucide="arrow-left"></i> Back to Orders
+        </a>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i data-lucide="printer"></i> Print Invoice
         </button>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Left Column: Order Items & Info -->
-    <div class="lg:col-span-2 space-y-6">
-        <!-- Order Items -->
-        <div class="bg-white rounded-2xl soft-shadow border border-slate-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Items Ordered</h3>
+<div class="grid grid-3" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Left Column: Items and Details -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: 0;">Order Items</h3>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+            <div class="table-container" style="border: none; border-radius: 0;">
+                <table class="table">
                     <thead>
-                        <tr class="bg-slate-50/30">
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Product</th>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Price</th>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Qty</th>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Total</th>
+                        <tr>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th style="text-align: right;">Total</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <?php foreach($items as $item): ?>
+                    <tbody>
+                        <?php foreach ($items as $item): ?>
                         <tr>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-slate-50 rounded border border-slate-100 flex-shrink-0 flex items-center justify-center p-1">
-                                        <img src="<?= $item['product_image'] ? '../uploads/' . $item['product_image'] : 'https://via.placeholder.com/50' ?>" class="max-w-full max-h-full object-contain">
-                                    </div>
-                                    <div class="text-sm font-bold text-slate-800"><?= htmlspecialchars($item['product_name']) ?></div>
-                                </div>
+                            <td style="display: flex; align-items: center; gap: 12px;">
+                                <?php if ($item['product_image']): ?>
+                                <img src="<?php echo SITE_URL . '/' . $item['product_image']; ?>" alt="" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                                <?php endif; ?>
+                                <span><?php echo htmlspecialchars($item['product_name']); ?></span>
                             </td>
-                            <td class="px-6 py-4 text-center text-sm text-slate-600"><?= formatPrice($item['price']) ?></td>
-                            <td class="px-6 py-4 text-center text-sm text-slate-600">×<?= $item['quantity'] ?></td>
-                            <td class="px-6 py-4 text-right text-sm font-bold text-slate-800"><?= formatPrice($item['price'] * $item['quantity']) ?></td>
+                            <td><?php echo htmlspecialchars($item['sku'] ?: 'N/A'); ?></td>
+                            <td><?php echo formatPrice($item['price']); ?></td>
+                            <td><?php echo $item['quantity']; ?></td>
+                            <td style="text-align: right; font-weight: 600;">
+                                <?php echo formatPrice($item['price'] * $item['quantity']); ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
-                    <tfoot>
-                        <tr class="bg-slate-50/50">
-                            <td colspan="3" class="px-6 py-4 text-right font-bold text-slate-500">Grand Total</td>
-                            <td class="px-6 py-4 text-right font-bold text-brand-600 text-lg"><?= formatPrice($order['total_amount']) ?></td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
-        </div>
-
-        <!-- Customer & Shipping -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl soft-shadow border border-slate-100">
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i data-lucide="user" class="w-4 h-4 text-brand-500"></i> Customer Details
-                </h3>
-                <div class="space-y-3">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Address</p>
-                        <p class="text-sm font-semibold text-slate-700 mt-1"><?= nl2br(htmlspecialchars($order['address'])) ?></p>
-                    </div>
-                    <?php if ($order['notes']): ?>
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Order Note</p>
-                        <p class="text-sm text-slate-600 mt-1 italic">"<?= htmlspecialchars($order['notes']) ?>"</p>
-                    </div>
-                    <?php endif; ?>
+            <div style="padding: 20px; background: var(--gray-50); display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; width: 200px;">
+                    <span style="color: var(--text-secondary);">Subtotal:</span>
+                    <span style="font-weight: 500;"><?php echo formatPrice($order['total_amount']); ?></span>
                 </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl soft-shadow border border-slate-100">
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i data-lucide="credit-card" class="w-4 h-4 text-brand-500"></i> Payment Info
-                </h3>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Method</p>
-                        <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars($order['payment_method']) ?></p>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Status</p>
-                        <?php
-                        $p_status = $order['payment_status'] ?? 'Pending';
-                        $p_class = match($p_status) {
-                            'Paid' => 'bg-emerald-100 text-emerald-700',
-                            'Failed' => 'bg-red-100 text-red-700',
-                            default => 'bg-amber-100 text-amber-700',
-                        };
-                        ?>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase <?= $p_class ?>"><?= $p_status ?></span>
-                    </div>
-                    <?php if ($order['transaction_id']): ?>
-                    <div class="flex justify-between items-center">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">TXN ID</p>
-                        <code class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-600"><?= htmlspecialchars($order['transaction_id']) ?></code>
-                    </div>
-                    <?php endif; ?>
-                    <?php if ($order['payment_proof']): ?>
-                    <a href="../uploads/<?= htmlspecialchars($order['payment_proof']) ?>" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 border border-brand-200 rounded-lg text-xs font-bold text-brand-600 hover:bg-brand-50 transition-colors">
-                        <i data-lucide="image" class="w-4 h-4"></i> View Payment Proof
-                    </a>
-                    <?php endif; ?>
+                <div style="display: flex; justify-content: space-between; width: 200px;">
+                    <span style="color: var(--text-secondary);">Shipping:</span>
+                    <span style="font-weight: 500;"><?php echo formatPrice(0); ?></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; width: 200px; padding-top: 8px; border-top: 1px solid var(--gray-200);">
+                    <span style="font-weight: 700; font-size: 1.1rem;">Total:</span>
+                    <span style="font-weight: 700; font-size: 1.1rem; color: var(--primary);"><?php echo formatPrice($order['total_amount']); ?></span>
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Shipping Address</h3>
+            <p style="white-space: pre-line; line-height: 1.6;"><?php echo htmlspecialchars($order['address']); ?></p>
+        </div>
+
+        <?php if ($order['notes']): ?>
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Order Notes</h3>
+            <p style="font-style: italic; color: var(--text-secondary);"><?php echo htmlspecialchars($order['notes']); ?></p>
+        </div>
+        <?php endif; ?>
     </div>
 
-    <!-- Right Column: Status Update -->
-    <div class="space-y-6">
-        <div class="bg-white p-6 rounded-2xl soft-shadow border border-slate-100 sticky top-6">
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
-                <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-500"></i> Update Order
-            </h3>
-            <form method="POST" class="space-y-5">
-                <?= csrf_field() ?>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Delivery Status</label>
-                    <select name="delivery_status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
-                        <option value="Pending" <?= $order['delivery_status'] === 'Pending' ? 'selected' : '' ?>>Pending Review</option>
-                        <option value="Confirmed" <?= $order['delivery_status'] === 'Confirmed' ? 'selected' : '' ?>>Confirmed</option>
-                        <option value="Shipped" <?= $order['delivery_status'] === 'Shipped' ? 'selected' : '' ?>>Shipped / Out for Delivery</option>
-                        <option value="Delivered" <?= $order['delivery_status'] === 'Delivered' ? 'selected' : '' ?>>Delivered ✅</option>
-                        <option value="Cancelled" <?= $order['delivery_status'] === 'Cancelled' ? 'selected' : '' ?>>Cancelled ❌</option>
-                    </select>
+    <!-- Right Column: Customer and Payment -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Customer Info</h3>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem;">
+                    <?php echo strtoupper(substr($order['customer_name'], 0, 1)); ?>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Payment Status</label>
-                    <select name="payment_status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
-                        <option value="Pending" <?= $order['payment_status'] === 'Pending' ? 'selected' : '' ?>>Pending Verification</option>
-                        <option value="Paid" <?= $order['payment_status'] === 'Paid' ? 'selected' : '' ?>>Verified (Paid) ✅</option>
-                        <option value="Failed" <?= $order['payment_status'] === 'Failed' ? 'selected' : '' ?>>Failed / Rejected</option>
-                    </select>
-                </div>
-                <button type="submit" name="update_status" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
-                    <i data-lucide="save" class="w-4 h-4"></i> Save Changes
-                </button>
-            </form>
-        </div>
-
-        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
-            <div class="flex gap-3">
-                <i data-lucide="info" class="w-5 h-5 text-blue-500 flex-shrink-0"></i>
-                <div>
-                    <h4 class="text-xs font-bold text-blue-800">Order Summary</h4>
-                    <p class="text-[11px] text-blue-600 mt-1">Placed on <?= date('M d, Y', strtotime($order['created_at'])) ?>. Last updated on <?= date('M d, Y', strtotime($order['updated_at'] ?? $order['created_at'])) ?>.</p>
+                    <div style="font-weight: 600;"><?php echo htmlspecialchars($order['customer_name']); ?></div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">Customer ID: #<?php echo $order['user_id']; ?></div>
                 </div>
             </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="mail" style="width: 16px; color: var(--gray-400);"></i>
+                    <span><?php echo htmlspecialchars($order['customer_email'] ?: 'N/A'); ?></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="phone" style="width: 16px; color: var(--gray-400);"></i>
+                    <span><?php echo htmlspecialchars($order['customer_mobile']); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Payment Information</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Method:</span>
+                    <span class="badge badge-info"><?php echo $order['payment_method']; ?></span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Status:</span>
+                    <span class="badge badge-<?php echo strtolower($order['payment_status']); ?>"><?php echo $order['payment_status']; ?></span>
+                </div>
+                <?php if ($order['transaction_id']): ?>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="color: var(--text-secondary); font-size: 12px;">Transaction ID:</span>
+                    <span style="font-family: monospace; background: var(--gray-100); padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                        <?php echo htmlspecialchars($order['transaction_id']); ?>
+                    </span>
+                </div>
+                <?php endif; ?>
+                <?php if ($order['payment_proof']): ?>
+                <div style="margin-top: 12px;">
+                    <span style="color: var(--text-secondary); font-size: 12px; display: block; margin-bottom: 8px;">Payment Proof:</span>
+                    <a href="<?php echo SITE_URL . '/' . $order['payment_proof']; ?>" target="_blank">
+                        <img src="<?php echo SITE_URL . '/' . $order['payment_proof']; ?>" alt="Payment Proof" style="width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+                    </a>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Actions</h3>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="openStatusModal(<?php echo $id; ?>, '<?php echo $order['delivery_status']; ?>', '<?php echo $order['payment_status']; ?>')">
+                <i data-lucide="refresh-cw"></i> Update Status
+            </button>
+            <form action="order-action.php" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="id" value="<?php echo $id; ?>">
+                <input type="hidden" name="delivery_status" value="Cancelled">
+                <input type="hidden" name="payment_status" value="<?php echo $order['payment_status']; ?>">
+                <button type="submit" class="btn btn-ghost" style="width: 100%; color: var(--danger);">
+                    <i data-lucide="x-circle"></i> Cancel Order
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<!-- Re-using the status modal from orders.php -->
+<div id="statusModal" class="modal-overlay">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <h2 class="modal-title">Update Order Status</h2>
+            <button class="btn btn-ghost btn-sm" onclick="Modal.close('statusModal')">&times;</button>
+        </div>
+        <form action="order-action.php" method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="id" id="modalOrderId">
+                
+                <div class="form-group">
+                    <label class="form-label">Delivery Status</label>
+                    <select name="delivery_status" id="modalDeliveryStatus" class="form-control">
+                        <option value="Pending">Pending</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select name="payment_status" id="modalPaymentStatus" class="form-control">
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Failed">Failed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="Modal.close('statusModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openStatusModal(id, deliveryStatus, paymentStatus) {
+    document.getElementById('modalOrderId').value = id;
+    document.getElementById('modalDeliveryStatus').value = deliveryStatus;
+    document.getElementById('modalPaymentStatus').value = paymentStatus;
+    Modal.open('statusModal');
+}
+</script>
+
+<?php admin_footer(); ?>

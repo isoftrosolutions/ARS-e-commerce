@@ -42,8 +42,21 @@ foreach ($cart as $item) {
 }
 
 $shipping_fee = ($subtotal >= FREE_SHIPPING_THRESHOLD) ? 0 : SHIPPING_FEE;
-$total_amount = $subtotal + $shipping_fee;
 
+$coupon_discount = 0;
+$coupon_code = null;
+if (isset($_SESSION['coupon'])) {
+    require_once __DIR__ . '/includes/coupon.php';
+    $result = apply_coupon($_SESSION['coupon']['code'], $subtotal);
+    if ($result['valid']) {
+        $coupon_discount = $result['discount'];
+        $coupon_code = $_SESSION['coupon']['code'];
+    } else {
+        unset($_SESSION['coupon']); // Invalidated code
+    }
+}
+
+$total_amount = max(0, $subtotal + $shipping_fee - $coupon_discount);
 $payment_proof = '';
 if (($payment_method === 'eSewa' || $payment_method === 'BankQR') && isset($_FILES['payment_proof'])) {
     $uploader = new SecureFileUpload('payments');
@@ -89,10 +102,12 @@ try {
     $delivery_status = 'Pending';
     $full_delivery_info = "$full_name ($mobile)" . ($email ? " | $email" : "") . " | $address";
 
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, payment_method, payment_status, delivery_status, transaction_id, payment_proof, address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, coupon_code, discount_amount, payment_method, payment_status, delivery_status, transaction_id, payment_proof, address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
         $user_id,
         $total_amount,
+        $coupon_code,
+        $coupon_discount,
         $payment_method,
         $payment_status,
         $delivery_status,
@@ -101,6 +116,11 @@ try {
         $full_delivery_info,
         $notes
     ]);
+
+    if ($coupon_code) {
+        $pdo->prepare("UPDATE coupons SET used_count = used_count + 1 WHERE code = ?")->execute([$coupon_code]);
+        unset($_SESSION['coupon']);
+    }
     
     $order_id = $pdo->lastInsertId();
 

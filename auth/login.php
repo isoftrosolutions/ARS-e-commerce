@@ -180,8 +180,11 @@ $page_title = "Login";
                                 </div>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" name="password" required placeholder="Enter password" 
-                                           class="form-control" minlength="6">
+                                    <input type="password" name="password" id="password" required placeholder="Enter password" 
+                                           class="form-control border-end-0" minlength="6">
+                                    <button class="btn border border-start-0" type="button" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
                                 </div>
                             </div>
                             
