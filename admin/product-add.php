@@ -6,6 +6,7 @@ if (!is_admin()) {
 }
 
 if (isset($_POST['add_product'])) {
+    require_csrf();
     $name = trim($_POST['name']);
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
     $description = $_POST['description'];
@@ -166,3 +167,4 @@ include 'includes/header.php';
 </script>
 
 <?php include 'includes/footer.php'; ?>
+ ?>

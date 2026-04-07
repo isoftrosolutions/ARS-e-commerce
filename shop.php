@@ -1,6 +1,6 @@
 <?php
 $page_title = "Shop All Products";
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header-bootstrap.php';
 
 $category_id = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT) ?? 0;
 $query = filter_input(INPUT_GET, 'q', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? '';
@@ -13,32 +13,27 @@ if ($max_price < 0) $max_price = 0;
 
 try {
     $sql = "SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.stock > 0";
-    $count_sql = "SELECT COUNT(*) as total FROM products p WHERE p.stock > 0";
     $params = [];
     
     if ($category_id > 0) {
         $sql .= " AND p.category_id = ?";
-        $count_sql .= " AND p.category_id = ?";
         $params[] = $category_id;
     }
     
     if ($query) {
         $search_term = "%$query%";
         $sql .= " AND (p.name LIKE ? OR p.description LIKE ?)";
-        $count_sql .= " AND (p.name LIKE ? OR p.description LIKE ?)";
         $params[] = $search_term;
         $params[] = $search_term;
     }
     
     if ($min_price > 0) {
         $sql .= " AND (CASE WHEN p.discount_price IS NOT NULL THEN p.discount_price ELSE p.price END) >= ?";
-        $count_sql .= " AND (CASE WHEN discount_price IS NOT NULL THEN discount_price ELSE price END) >= ?";
         $params[] = $min_price;
     }
     
     if ($max_price > 0) {
         $sql .= " AND (CASE WHEN p.discount_price IS NOT NULL THEN p.discount_price ELSE p.price END) <= ?";
-        $count_sql .= " AND (CASE WHEN discount_price IS NOT NULL THEN discount_price ELSE price END) <= ?";
         $params[] = $max_price;
     }
 
@@ -71,161 +66,189 @@ try {
     $categories = [];
     $max_product_price = 50000;
 }
+
+// Get current category name
+$current_cat_name = 'All Products';
+if ($category_id > 0) {
+    foreach($categories as $cat) {
+        if($cat['id'] == $category_id) {
+            $current_cat_name = $cat['name'];
+            break;
+        }
+    }
+} elseif($query) {
+    $current_cat_name = "Search: '" . htmlspecialchars($query) . "'";
+}
 ?>
 
-<section class="bg-white border-b border-slate-100 py-10">
-    <div class="container mx-auto px-4 md:px-6">
-        <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-            <a href="index.php" class="hover:text-brand-600 transition-colors">Home</a>
-            <i data-lucide="chevron-right" class="w-3 h-3"></i>
-            <span class="text-slate-900">Shop Catalog</span>
-        </div>
-        <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-            <?php 
-            if($category_id > 0) {
-                foreach($categories as $cat) if($cat['id'] == $category_id) echo htmlspecialchars($cat['name']);
-            } elseif($query) {
-                echo "Search results for: '" . htmlspecialchars($query) . "'";
-            } else {
-                echo "All Collections";
-            }
-            ?>
-        </h1>
+<!-- Breadcrumb -->
+<section class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Shop</li>
+            </ol>
+        </nav>
+        <h1 class="h3 fw-bold text-dark mt-2 mb-0"><?= $current_cat_name ?></h1>
     </div>
 </section>
 
-<div class="container mx-auto px-4 md:px-6 py-12">
-    <div class="flex flex-col lg:flex-row gap-12">
-        <aside class="w-full lg:w-72 flex-shrink-0 space-y-10">
-            <form id="filter-form" method="GET" action="shop.php" class="space-y-10">
-                <input type="hidden" name="category" value="<?= $category_id ?>">
-                <input type="hidden" name="q" value="<?= htmlspecialchars($query) ?>">
-                
-                <div>
-                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 pb-2 border-b-2 border-brand-600 w-fit">Categories</h4>
-                    <div class="flex flex-col gap-2">
-                        <a href="shop.php<?= $query ? '?q=' . urlencode($query) : '' ?>" class="flex items-center justify-between group py-1.5 transition-all <?= $category_id === 0 ? 'text-brand-600 font-bold' : 'text-slate-500 hover:text-brand-600' ?>">
-                            <span class="text-sm">All Products</span>
-                        </a>
-                        <?php foreach($categories as $cat): ?>
-                            <a href="shop.php?category=<?= $cat['id'] ?><?= $query ? '&q=' . urlencode($query) : '' ?>" class="flex items-center justify-between group py-1.5 transition-all <?= $category_id == $cat['id'] ? 'text-brand-600 font-bold' : 'text-slate-500 hover:text-brand-600' ?>">
-                                <span class="text-sm"><?= htmlspecialchars($cat['name']) ?></span>
-                                <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full text-slate-400"><?= (int)$cat['product_count'] ?></span>
+<!-- Main Content -->
+<div class="container py-4 py-md-5">
+    <div class="row g-4">
+        
+        <!-- Sidebar Filters -->
+        <aside class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 100px;">
+                <div class="card-body p-4">
+                    
+                    <!-- Categories -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-funnel me-2 text-primary"></i>Categories
+                        </h6>
+                        <div class="list-group list-group-flush">
+                            <a href="shop.php<?= $query ? '?q=' . urlencode($query) : '' ?>" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2 <?= $category_id === 0 ? 'active' : '' ?>">
+                                <span>All Products</span>
                             </a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div>
-                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 pb-2 border-b-2 border-brand-600 w-fit">Price Range</h4>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] text-slate-400 uppercase mb-1 block">Min</label>
-                                <input type="number" name="min_price" id="min_price" value="<?= $min_price ?: 0 ?>" min="0" max="<?= $max_product_price ?>"
-                                       class="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-sm font-bold" placeholder="0">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-slate-400 uppercase mb-1 block">Max</label>
-                                <input type="number" name="max_price" id="max_price" value="<?= $max_price ?: '' ?>" min="0" max="<?= $max_product_price ?>"
-                                       class="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-sm font-bold" placeholder="<?= (int)$max_product_price ?>">
-                            </div>
+                            <?php foreach($categories as $cat): ?>
+                                <a href="shop.php?category=<?= $cat['id'] ?><?= $query ? '&q=' . urlencode($query) : '' ?>" 
+                                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2 <?= $category_id == $cat['id'] ? 'active' : '' ?>">
+                                    <span><?= htmlspecialchars($cat['name']) ?></span>
+                                    <span class="badge bg-light text-dark rounded-pill"><?= (int)$cat['product_count'] ?></span>
+                                </a>
+                            <?php endforeach; ?>
                         </div>
-                        <button type="submit" class="w-full py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-brand-600 transition-colors">
-                            Apply Price Filter
-                        </button>
-                        <?php if ($min_price > 0 || $max_price > 0): ?>
-                        <a href="shop.php?category=<?= $category_id ?><?= $query ? '&q=' . urlencode($query) : '' ?>" class="block text-center text-xs text-red-500 hover:underline">
-                            Clear Price Filter
-                        </a>
-                        <?php endif; ?>
+                    </div>
+                    
+                    <!-- Price Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-tag me-2 text-primary"></i>Price Range
+                        </h6>
+                        <form method="GET" action="shop.php">
+                            <input type="hidden" name="category" value="<?= $category_id ?>">
+                            <input type="hidden" name="q" value="<?= htmlspecialchars($query) ?>">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <input type="number" name="min_price" value="<?= $min_price ?: 0 ?>" min="0"
+                                           class="form-control form-control-sm" placeholder="Min">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="max_price" value="<?= $max_price ?: '' ?>" min="0"
+                                           class="form-control form-control-sm" placeholder="Max">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-dark btn-sm w-100">Apply Filter</button>
+                            <?php if ($min_price > 0 || $max_price > 0): ?>
+                                <a href="shop.php?category=<?= $category_id ?><?= $query ? '&q=' . urlencode($query) : '' ?>" 
+                                   class="btn btn-outline-danger btn-sm w-100 mt-2">Clear</a>
+                            <?php endif; ?>
+                        </form>
+                    </div>
+                    
+                    <!-- Promo Card -->
+                    <div class="bg-dark rounded-3 p-4 text-center">
+                        <h6 class="text-warning fw-bold">EXTRA 15% OFF</h6>
+                        <p class="text-white-50 small mb-3">On your first mobile app order</p>
+                        <code class="text-warning">APP15</code>
                     </div>
                 </div>
-            </form>
-
-            <div class="bg-slate-900 rounded-3xl p-6 overflow-hidden relative group cursor-pointer">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-brand-600/20 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-                <h5 class="text-brand-500 font-black text-xl mb-2 italic">EXTRA 15% OFF</h5>
-                <p class="text-white text-xs leading-relaxed mb-4">On your first mobile app order. Use code <span class="text-brand-500 font-bold tracking-widest">APP15</span></p>
-                <button class="text-[10px] font-black uppercase tracking-widest text-white border-b border-brand-600 pb-1 hover:text-brand-500 transition-colors">Download Now</button>
             </div>
         </aside>
-
-        <div class="flex-grow">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-white p-4 rounded-2xl soft-shadow border border-slate-100">
-                <p class="text-sm font-bold text-slate-500">Showing <?= count($products) ?> products</p>
-                <form action="shop.php" method="GET" class="flex items-center gap-3">
-                    <?php if($category_id > 0): ?><input type="hidden" name="category" value="<?= $category_id ?>"><?php endif; ?>
-                    <?php if($query): ?><input type="hidden" name="q" value="<?= htmlspecialchars($query) ?>"><?php endif; ?>
-                    <?php if($min_price > 0): ?><input type="hidden" name="min_price" value="<?= $min_price ?>"><?php endif; ?>
-                    <?php if($max_price > 0): ?><input type="hidden" name="max_price" value="<?= $max_price ?>"><?php endif; ?>
-                    <span class="text-xs font-bold text-slate-400 uppercase whitespace-nowrap">Sort by:</span>
-                    <select name="sort" onchange="this.form.submit()" class="bg-slate-50 border-none rounded-lg text-xs font-bold text-slate-700 focus:ring-2 focus:ring-brand-500/20 py-2 pl-3 pr-8 outline-none">
-                        <option value="newest" <?= $sort == 'newest' ? 'selected' : '' ?>>Latest Arrivals</option>
-                        <option value="price_low" <?= $sort == 'price_low' ? 'selected' : '' ?>>Price: Low to High</option>
-                        <option value="price_high" <?= $sort == 'price_high' ? 'selected' : '' ?>>Price: High to Low</option>
-                        <option value="name" <?= $sort == 'name' ? 'selected' : '' ?>>Name: A-Z</option>
-                    </select>
-                </form>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            
+            <!-- Toolbar -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body py-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                        <span class="text-muted">
+                            <strong><?= count($products) ?></strong> products found
+                        </span>
+                        <form method="GET" action="shop.php" class="d-flex align-items-center gap-2">
+                            <?php if($category_id > 0): ?><input type="hidden" name="category" value="<?= $category_id ?>"><?php endif; ?>
+                            <?php if($query): ?><input type="hidden" name="q" value="<?= htmlspecialchars($query) ?>"><?php endif; ?>
+                            <?php if($min_price > 0): ?><input type="hidden" name="min_price" value="<?= $min_price ?>"><?php endif; ?>
+                            <?php if($max_price > 0): ?><input type="hidden" name="max_price" value="<?= $max_price ?>"><?php endif; ?>
+                            <label class="text-muted small">Sort by:</label>
+                            <select name="sort" onchange="this.form.submit()" class="form-select form-select-sm" style="width: auto;">
+                                <option value="newest" <?= $sort == 'newest' ? 'selected' : '' ?>>Newest</option>
+                                <option value="price_low" <?= $sort == 'price_low' ? 'selected' : '' ?>>Price: Low to High</option>
+                                <option value="price_high" <?= $sort == 'price_high' ? 'selected' : '' ?>>Price: High to Low</option>
+                                <option value="name" <?= $sort == 'name' ? 'selected' : '' ?>>Name: A-Z</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-                <?php foreach ($products as $p): ?>
-                    <?php 
-                    $has_wishlist = false;
-                    if (is_logged_in()) {
-                        $check = $pdo->prepare("SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?");
-                        $check->execute([$_SESSION['user_id'], $p['id']]);
-                        $has_wishlist = (bool)$check->fetch();
-                    }
-                    ?>
-                    <div class="bg-white rounded-3xl soft-shadow border border-slate-100 overflow-hidden group hover:border-brand-500/30 transition-all">
-                        <div class="relative aspect-square overflow-hidden bg-slate-50">
-                            <?php if($p['discount_price']): ?>
-                                <div class="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-lg shadow-red-600/20">
-                                    -<?= round((($p['price'] - $p['discount_price']) / $p['price']) * 100) ?>%
-                                </div>
-                            <?php endif; ?>
-                            <a href="wishlist-action.php?action=<?= $has_wishlist ? 'remove' : 'add' ?>&id=<?= $p['id'] ?>" 
-                               class="absolute top-4 right-4 z-10 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center transition-all scale-0 group-hover:scale-100 transform duration-300 <?= $has_wishlist ? 'text-red-500' : 'text-slate-400 hover:text-red-500' ?>">
-                                <i data-lucide="heart" class="w-5 h-5 <?= $has_wishlist ? 'fill-current' : '' ?>"></i>
-                            </a>
-                            <a href="product.php?slug=<?= htmlspecialchars($p['slug']) ?>">
-                                <img src="<?= !empty($p['image']) ? UPLOAD_DIR . htmlspecialchars($p['image']) : 'https://via.placeholder.com/400x400?text=' . urlencode($p['name']) ?>" 
-                                     class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 p-6" alt="<?= htmlspecialchars($p['name']) ?>">
-                            </a>
-                        </div>
-                        <div class="p-6">
-                            <span class="text-[10px] font-bold text-brand-600 uppercase tracking-widest"><?= htmlspecialchars($p['category_name'] ?? 'General') ?></span>
-                            <a href="product.php?slug=<?= htmlspecialchars($p['slug']) ?>">
-                                <h3 class="text-lg font-bold text-slate-800 mt-1 line-clamp-1 group-hover:text-brand-600 transition-colors"><?= htmlspecialchars($p['name']) ?></h3>
-                            </a>
-                            <div class="flex items-center justify-between mt-4">
-                                <div>
-                                    <span class="text-xl font-black text-slate-900"><?= formatPrice($p['discount_price'] ?: $p['price']) ?></span>
+            
+            <!-- Products -->
+            <?php if (!empty($products)): ?>
+                <div class="row g-4">
+                    <?php foreach ($products as $p): ?>
+                        <?php 
+                        $has_wishlist = false;
+                        if (is_logged_in()) {
+                            $check = $pdo->prepare("SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?");
+                            $check->execute([$_SESSION['user_id'], $p['id']]);
+                            $has_wishlist = (bool)$check->fetch();
+                        }
+                        ?>
+                        <div class="col-6 col-md-4">
+                            <div class="product-card card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                                <div class="position-relative">
                                     <?php if($p['discount_price']): ?>
-                                        <span class="text-xs text-slate-400 line-through ml-2"><?= formatPrice($p['price']) ?></span>
+                                        <span class="badge bg-danger position-absolute top-0 start-0 m-2 z-1">
+                                            -<?= round((($p['price'] - $p['discount_price']) / $p['price']) * 100) ?>%
+                                        </span>
                                     <?php endif; ?>
+                                    <a href="wishlist-action.php?action=<?= $has_wishlist ? 'remove' : 'add' ?>&id=<?= $p['id'] ?>" 
+                                       class="btn btn-light btn-sm rounded-circle position-absolute top-0 end-0 m-2 z-1 shadow-sm <?= $has_wishlist ? 'text-danger' : '' ?>">
+                                        <i class="bi bi-heart<?= $has_wishlist ? '-fill' : '' ?>"></i>
+                                    </a>
+                                    <a href="product.php?slug=<?= htmlspecialchars($p['slug']) ?>">
+                                        <img src="<?= !empty($p['image']) ? UPLOAD_DIR . htmlspecialchars($p['image']) : 'https://via.placeholder.com/400x400?text=' . urlencode($p['name']) ?>" 
+                                             class="card-img-top p-4" 
+                                             alt="<?= htmlspecialchars($p['name']) ?>" 
+                                             loading="lazy"
+                                             style="height: 200px; object-fit: contain;">
+                                    </a>
                                 </div>
-                                <button onclick="addToCart(<?= $p['id'] ?>)" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-brand-600 transition-all transform group-hover:scale-110">
-                                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                                </button>
+                                <div class="card-body text-center p-3">
+                                    <span class="badge bg-light text-primary mb-2"><?= htmlspecialchars($p['category_name'] ?? 'General') ?></span>
+                                    <a href="product.php?slug=<?= htmlspecialchars($p['slug']) ?>" class="text-decoration-none">
+                                        <h5 class="card-title h6 fw-bold text-dark mb-2 line-clamp-1"><?= htmlspecialchars($p['name']) ?></h5>
+                                    </a>
+                                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                                        <span class="fw-bold text-dark h5 mb-0"><?= formatPrice($p['discount_price'] ?: $p['price']) ?></span>
+                                        <?php if($p['discount_price']): ?>
+                                            <small class="text-muted text-decoration-line-through"><?= formatPrice($p['price']) ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button onclick="addToCart(<?= $p['id'] ?>)" class="btn btn-dark btn-sm w-100 rounded-2">
+                                        <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="card border-0 shadow-sm rounded-3 text-center py-5">
+                    <div class="card-body py-5">
+                        <i class="bi bi-search display-1 text-muted opacity-25"></i>
+                        <h4 class="mt-4 mb-2 text-dark">No products found</h4>
+                        <p class="text-muted mb-4">We couldn't find anything matching your filters.</p>
+                        <a href="shop.php" class="btn btn-primary px-4">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Reset Filters
+                        </a>
                     </div>
-                <?php endforeach; ?>
-
-                <?php if (empty($products)): ?>
-                    <div class="col-span-full py-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-                        <div class="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="search-x" class="w-10 h-10"></i>
-                        </div>
-                        <h3 class="text-2xl font-black text-slate-900 mb-2">No products found</h3>
-                        <p class="text-slate-500 mb-8 max-w-sm mx-auto">We couldn't find anything matching your filters or search.</p>
-                        <a href="shop.php" class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl">Reset All Filters</a>
-                    </div>
-                <?php endif; ?>
-            </div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -236,4 +259,4 @@ try {
     }
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>

@@ -77,6 +77,7 @@ include 'includes/header.php';
 <?php endif; ?>
 
 <form action="" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <?= csrf_field() ?>
     <div class="lg:col-span-2 space-y-6">
         <!-- General Information -->
         <div class="bg-white p-6 rounded-2xl soft-shadow border border-slate-100">

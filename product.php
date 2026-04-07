@@ -33,167 +33,178 @@ try {
     redirect('shop.php');
 }
 
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header-bootstrap.php';
 ?>
 
-<div class="container mx-auto px-4 md:px-6 py-12">
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">
-        <a href="index.php" class="hover:text-brand-600 transition-colors">Home</a>
-        <i data-lucide="chevron-right" class="w-3 h-3"></i>
-        <a href="shop.php?category=<?= $product['category_id'] ?>" class="hover:text-brand-600 transition-colors"><?= htmlspecialchars($product['category_name']) ?></a>
-        <i data-lucide="chevron-right" class="w-3 h-3"></i>
-        <span class="text-slate-900 truncate max-w-[200px]"><?= htmlspecialchars($product['name']) ?></span>
+<!-- Breadcrumb -->
+<section class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="shop.php?category=<?= $product['category_id'] ?>" class="text-decoration-none"><?= htmlspecialchars($product['category_name']) ?></a></li>
+                <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($product['name']) ?></li>
+            </ol>
+        </nav>
     </div>
+</section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-        <!-- Left: Image Gallery -->
-        <div class="space-y-6">
-            <div class="aspect-square bg-white rounded-[2rem] soft-shadow border border-slate-100 overflow-hidden group">
-                <img id="mainImage" src="<?= $product['image'] ? UPLOAD_DIR . $product['image'] : 'https://via.placeholder.com/800x800' ?>" 
-                     class="w-full h-full object-contain p-8 transition-transform duration-500 group-hover:scale-110" alt="<?= htmlspecialchars($product['name']) ?>">
+<!-- Product Content -->
+<section class="py-4 py-md-5">
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            
+            <!-- Product Images -->
+            <div class="col-lg-6">
+                <!-- Main Image -->
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
+                    <div class="ratio ratio-1x1 bg-light">
+                        <img id="mainImage" src="<?= $product['image'] ? UPLOAD_DIR . $product['image'] : 'https://via.placeholder.com/800x800' ?>" 
+                             class="img-fluid p-4 p-lg-5" alt="<?= htmlspecialchars($product['name']) ?>" 
+                             style="object-fit: contain;">
+                    </div>
+                </div>
+                
+                <!-- Thumbnails -->
+                <?php if(!empty($gallery)): ?>
+                    <div class="d-flex gap-2 overflow-auto pb-2">
+                        <button onclick="changeImage('<?= UPLOAD_DIR . $product['image'] ?>')" class="btn btn-outline-primary p-2 rounded-2 flex-shrink-0 active">
+                            <img src="<?= UPLOAD_DIR . $product['image'] ?>" alt="Main" style="width: 60px; height: 60px; object-fit: contain;">
+                        </button>
+                        <?php foreach($gallery as $img): ?>
+                            <button onclick="changeImage('<?= UPLOAD_DIR . $img['image_path'] ?>')" class="btn btn-outline-secondary p-2 rounded-2 flex-shrink-0">
+                                <img src="<?= UPLOAD_DIR . $img['image_path'] ?>" alt="Gallery" style="width: 60px; height: 60px; object-fit: contain;">
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
             
-            <?php if(!empty($gallery)): ?>
-            <div class="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-                <!-- Original primary image as thumbnail -->
-                <button onclick="changeImage('<?= UPLOAD_DIR . $product['image'] ?>')" class="w-20 h-20 bg-white rounded-xl border-2 border-brand-600 p-2 flex-shrink-0">
-                    <img src="<?= UPLOAD_DIR . $product['image'] ?>" class="w-full h-full object-contain">
-                </button>
-                <?php foreach($gallery as $img): ?>
-                <button onclick="changeImage('<?= UPLOAD_DIR . $img['image_path'] ?>')" class="w-20 h-20 bg-white rounded-xl border border-slate-200 p-2 flex-shrink-0 hover:border-brand-600 transition-all">
-                    <img src="<?= UPLOAD_DIR . $img['image_path'] ?>" class="w-full h-full object-contain">
-                </button>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Right: Product Info -->
-        <div class="flex flex-col">
-            <div class="mb-2">
-                <span class="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em]"><?= htmlspecialchars($product['category_name']) ?></span>
-            </div>
-            <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
-                <?= htmlspecialchars($product['name']) ?>
-            </h1>
-
-            <div class="flex items-center gap-4 mb-8">
-                <div class="flex text-amber-400">
-                    <?php for($i=1; $i<=5; $i++): ?>
-                        <i data-lucide="star" class="w-4 h-4 <?= $i <= round($avg_rating) ? 'fill-current' : 'text-slate-200' ?>"></i>
-                    <?php endfor; ?>
-                </div>
-                <span class="text-sm font-bold text-slate-400 underline decoration-slate-200"><?= count($reviews) ?> Customer Reviews</span>
-            </div>
-
-            <div class="flex items-baseline gap-4 mb-10">
-                <span class="text-4xl font-black text-slate-900"><?= formatPrice($product['discount_price'] ?: $product['price']) ?></span>
-                <?php if($product['discount_price']): ?>
-                    <span class="text-lg text-slate-400 line-through"><?= formatPrice($product['price']) ?></span>
-                    <span class="bg-red-50 text-red-600 text-xs font-black px-3 py-1 rounded-full uppercase">Save <?= round((($product['price'] - $product['discount_price']) / $product['price']) * 100) ?>%</span>
-                <?php endif; ?>
-            </div>
-
-            <!-- Stock & Urgency -->
-            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 mb-10 space-y-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full <?= $product['stock'] > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-red-500' ?>"></div>
-                    <span class="text-sm font-bold text-slate-700">
-                        <?= $product['stock'] > 0 ? 'Available in Stock' : 'Currently Out of Stock' ?>
-                    </span>
-                </div>
-                <?php if($product['stock'] > 0 && $product['stock'] <= 5): ?>
-                    <div class="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-xl">
-                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                        <span class="text-xs font-bold uppercase tracking-wide">Only <?= $product['stock'] ?> items left! Order soon.</span>
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <div class="sticky-top" style="top: 100px;">
+                    
+                    <!-- Category & Title -->
+                    <span class="badge bg-light text-primary mb-2"><?= htmlspecialchars($product['category_name']) ?></span>
+                    <h1 class="h2 h1-lg fw-bold text-dark mb-3"><?= htmlspecialchars($product['name']) ?></h1>
+                    
+                    <!-- Rating -->
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="text-warning">
+                            <?php for($i=1; $i<=5; $i++): ?>
+                                <i class="bi bi-star<?= $i <= round($avg_rating) ? '-fill' : '' ?>"></i>
+                            <?php endfor; ?>
+                        </div>
+                        <a href="#reviews" class="text-decoration-none small">(<?= count($reviews) ?> reviews)</a>
                     </div>
-                <?php endif; ?>
-                <div class="flex items-center gap-3 text-slate-500 text-xs font-medium">
-                    <i data-lucide="truck" class="w-4 h-4"></i>
-                    <span>Delivery within 2-4 business days across Nepal.</span>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex flex-col sm:flex-row gap-4 mb-12">
-                <button onclick="addToCart(<?= $product['id'] ?>)" class="flex-grow h-16 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-brand-600 transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-200 flex items-center justify-center gap-3">
-                    <i data-lucide="shopping-cart" class="w-6 h-6"></i> Add to Shopping Bag
-                </button>
-                <button class="w-16 h-16 bg-white border border-slate-200 text-slate-400 rounded-2xl flex items-center justify-center hover:text-red-500 hover:border-red-100 transition-all">
-                    <i data-lucide="heart" class="w-6 h-6"></i>
-                </button>
-            </div>
-
-            <!-- Description -->
-            <div class="border-t border-slate-100 pt-10">
-                <h4 class="text-xs font-black text-slate-900 uppercase tracking-[0.2em] mb-6">Product Details</h4>
-                <div class="prose prose-slate prose-sm max-w-none text-slate-600 leading-relaxed">
-                    <?= nl2br(htmlspecialchars($product['description'])) ?>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Review Section -->
-    <section class="mt-24 pt-20 border-t border-slate-100">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-            <div>
-                <h3 class="text-3xl font-black text-slate-900 tracking-tight">Customer Feedback</h3>
-                <p class="text-slate-500 mt-1">Real reviews from verified buyers.</p>
-            </div>
-            <button class="px-8 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold hover:bg-slate-50 transition-all">Write a Review</button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <!-- Ratings Summary -->
-            <div class="lg:col-span-1 bg-slate-50 rounded-[2rem] p-8 h-fit">
-                <div class="text-center mb-8">
-                    <p class="text-6xl font-black text-slate-900 mb-2"><?= number_format($avg_rating, 1) ?></p>
-                    <div class="flex justify-center text-amber-400 mb-2">
-                        <?php for($i=1; $i<=5; $i++): ?>
-                            <i data-lucide="star" class="w-5 h-5 <?= $i <= round($avg_rating) ? 'fill-current' : 'text-slate-200' ?>"></i>
-                        <?php endfor; ?>
+                    
+                    <!-- Price -->
+                    <div class="mb-4">
+                        <span class="display-6 fw-bold text-dark"><?= formatPrice($product['discount_price'] ?: $product['price']) ?></span>
+                        <?php if($product['discount_price']): ?>
+                            <span class="text-muted text-decoration-line-through fs-5 ms-2"><?= formatPrice($product['price']) ?></span>
+                            <span class="badge bg-danger ms-2">Save <?= round((($product['price'] - $product['discount_price']) / $product['price']) * 100) ?>%</span>
+                        <?php endif; ?>
                     </div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Based on <?= count($reviews) ?> reviews</p>
-                </div>
-                <!-- Simple bar chart could go here -->
-            </div>
-
-            <!-- Review List -->
-            <div class="lg:col-span-2 space-y-8">
-                <?php if(empty($reviews)): ?>
-                    <div class="text-center py-12 text-slate-400 italic">No reviews yet. Be the first to share your thoughts!</div>
-                <?php else: ?>
-                    <?php foreach($reviews as $rev): ?>
-                    <div class="bg-white p-8 rounded-3xl soft-shadow border border-slate-50">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <p class="font-black text-slate-900"><?= htmlspecialchars($rev['full_name']) ?></p>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase mt-0.5"><?= date('M d, Y', strtotime($rev['created_at'])) ?></p>
-                            </div>
-                            <div class="flex text-amber-400">
-                                <?php for($i=1; $i<=5; $i++): ?>
-                                    <i data-lucide="star" class="w-3 h-3 <?= $i <= $rev['rating'] ? 'fill-current' : 'text-slate-200' ?>"></i>
-                                <?php endfor; ?>
+                    
+                    <!-- Stock Status -->
+                    <div class="alert <?= $product['stock'] > 0 ? 'alert-success' : 'alert-danger' ?> d-flex align-items-center py-2 px-3 rounded-2 mb-4">
+                        <i class="bi bi-<?= $product['stock'] > 0 ? 'check-circle-fill me-2' : 'x-circle-fill me-2' ?>"></i>
+                        <span><?= $product['stock'] > 0 ? 'In Stock (' . $product['stock'] . ' available)' : 'Out of Stock' ?></span>
+                    </div>
+                    
+                    <!-- Delivery Info -->
+                    <div class="card bg-light border-0 rounded-3 mb-4">
+                        <div class="card-body py-3">
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="bi bi-truck me-2 text-primary"></i>
+                                <span>Delivery within 2-4 business days across Nepal</span>
                             </div>
                         </div>
-                        <p class="text-slate-600 text-sm leading-relaxed"><?= nl2br(htmlspecialchars($rev['comment'])) ?></p>
                     </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex gap-3 mb-4">
+                        <?php if($product['stock'] > 0): ?>
+                            <button onclick="addToCart(<?= $product['id'] ?>)" class="btn btn-dark btn-lg flex-grow-1 rounded-2">
+                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary btn-lg flex-grow-1 rounded-2" disabled>
+                                Out of Stock
+                            </button>
+                        <?php endif; ?>
+                        <button class="btn btn-outline-danger rounded-2">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="border-top pt-4">
+                        <h5 class="fw-bold mb-3">Description</h5>
+                        <p class="text-muted lh-lg"><?= nl2br(htmlspecialchars($product['description'])) ?></p>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
-</div>
+        
+        <!-- Reviews Section -->
+        <section id="reviews" class="mt-5 pt-5 border-top">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="card bg-light border-0 rounded-3 h-100">
+                        <div class="card-body text-center p-4">
+                            <h2 class="display-3 fw-bold text-dark mb-2"><?= number_format($avg_rating, 1) ?></h2>
+                            <div class="text-warning mb-2">
+                                <?php for($i=1; $i<=5; $i++): ?>
+                                    <i class="bi bi-star<?= $i <= round($avg_rating) ? '-fill' : '' ?>"></i>
+                                <?php endfor; ?>
+                            </div>
+                            <p class="text-muted mb-0">Based on <?= count($reviews) ?> reviews</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <h4 class="fw-bold mb-4">Customer Reviews</h4>
+                    <?php if(empty($reviews)): ?>
+                        <div class="alert alert-info rounded-3">No reviews yet. Be the first to share your thoughts!</div>
+                    <?php else: ?>
+                        <?php foreach($reviews as $rev): ?>
+                            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="fw-bold mb-0"><?= htmlspecialchars($rev['full_name']) ?></h6>
+                                            <small class="text-muted"><?= date('M d, Y', strtotime($rev['created_at'])) ?></small>
+                                        </div>
+                                        <div class="text-warning">
+                                            <?php for($i=1; $i<=5; $i++): ?>
+                                                <i class="bi bi-star<?= $i <= $rev['rating'] ? '-fill' : '' ?>"></i>
+                                            <?php endfor; ?>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-0"><?= nl2br(htmlspecialchars($rev['comment'])) ?></p>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </section>
+    </div>
+</section>
 
 <script>
     function changeImage(src) {
         document.getElementById('mainImage').src = src;
+        // Update active thumbnail
+        document.querySelectorAll('.rounded-2').forEach(btn => btn.classList.remove('btn-outline-primary', 'active'));
+        event.target.closest('.rounded-2').classList.add('btn-outline-primary', 'active');
     }
+    
     function addToCart(productId) {
         window.location.href = 'cart-action.php?action=add&id=' + productId;
     }
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>

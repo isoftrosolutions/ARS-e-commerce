@@ -23,6 +23,7 @@ try {
 
 // Handle Add Coupon
 if (isset($_POST['add_coupon'])) {
+    require_csrf();
     $code = strtoupper(trim($_POST['code']));
     $type = $_POST['type'];
     $value = (float)$_POST['value'];
@@ -72,6 +73,7 @@ include 'includes/header.php';
         <div class="bg-white p-6 rounded-2xl soft-shadow border border-slate-100 sticky top-6">
             <h3 class="text-lg font-bold text-slate-800 mb-4">Create New Coupon</h3>
             <form action="" method="POST" class="space-y-4">
+                <?= csrf_field() ?>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Coupon Code</label>
                     <input type="text" name="code" required placeholder="e.g. SUMMER20"

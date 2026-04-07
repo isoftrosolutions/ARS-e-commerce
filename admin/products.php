@@ -6,8 +6,9 @@ if (!is_admin()) {
 }
 
 // Logic to handle actions (Delete, etc.)
-if(isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
+if(isset($_POST['delete_product'])) {
+    require_csrf();
+    $id = (int)$_POST['id'];
     try {
         $pdo->prepare("DELETE FROM products WHERE id = ?")->execute([$id]);
         redirect('products.php', "Product deleted successfully!");
@@ -139,6 +140,13 @@ include 'includes/header.php';
             <button class="px-3 py-1 border border-slate-200 rounded text-sm text-slate-400 cursor-not-allowed">Previous</button>
             <button class="px-3 py-1 bg-brand-600 border border-brand-600 rounded text-sm text-white">1</button>
             <button class="px-3 py-1 border border-slate-200 rounded text-sm text-slate-600 hover:bg-slate-50">Next</button>
+        </div>
+    </div>
+</div>
+
+<?php include 'includes/footer.php'; ?>
+
+ <button class="px-3 py-1 border border-slate-200 rounded text-sm text-slate-600 hover:bg-slate-50">Next</button>
         </div>
     </div>
 </div>

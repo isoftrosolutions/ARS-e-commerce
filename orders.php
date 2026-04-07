@@ -8,7 +8,6 @@ if (!is_logged_in()) {
 try {
     $user_id = $_SESSION['user_id'];
     
-    // Fetch all orders for this user
     $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$user_id]);
     $all_orders = $stmt->fetchAll();
@@ -18,114 +17,122 @@ try {
 }
 
 $page_title = "My Orders History";
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header-bootstrap.php';
 ?>
 
-<div class="container mx-auto px-4 md:px-6 py-12">
-    <div class="flex flex-col lg:flex-row gap-12">
-        
-        <!-- Account Sidebar (Shared) -->
-        <aside class="w-full lg:w-64 flex-shrink-0">
-            <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-8 sticky top-28">
-                <nav class="flex flex-col gap-2">
-                    <a href="dashboard.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
-                    </a>
-                    <a href="orders.php" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-600 text-white font-bold transition-all shadow-lg shadow-brand-600/20">
-                        <i data-lucide="package" class="w-4 h-4"></i> My Orders
-                    </a>
-                    <a href="wishlist.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="heart" class="w-4 h-4"></i> Wishlist
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="settings" class="w-4 h-4"></i> Settings
-                    </a>
-                    <hr class="my-4 border-slate-100">
-                    <a href="auth/logout.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-bold transition-all">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-                    </a>
-                </nav>
-            </div>
-        </aside>
+<!-- Breadcrumb -->
+<section class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="dashboard.php" class="text-decoration-none">Account</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Orders</li>
+            </ol>
+        </nav>
+    </div>
+</section>
 
-        <!-- Main Content -->
-        <div class="flex-grow">
-            <div class="mb-10">
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">Order History</h1>
-                <p class="text-slate-500 font-medium mt-1">Manage and track your recent purchases.</p>
-            </div>
-
-            <div class="space-y-6">
-                <?php if(empty($all_orders)): ?>
-                    <div class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-                        <div class="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="package-x" class="w-10 h-10"></i>
+<!-- Orders Content -->
+<section class="py-4 py-md-5">
+    <div class="container">
+        <div class="row g-4">
+            
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 100px;">
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush rounded-0">
+                            <a href="dashboard.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a>
+                            <a href="orders.php" class="list-group-item list-group-item-action active">
+                                <i class="bi bi-box-seam me-2"></i>My Orders
+                            </a>
+                            <a href="wishlist.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-heart me-2"></i>Wishlist
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear me-2"></i>Settings
+                            </a>
+                            <a href="auth/logout.php" class="list-group-item list-group-item-action text-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-900 mb-2">No orders found</h3>
-                        <p class="text-slate-500 mb-8 max-w-sm mx-auto">You haven't placed any orders yet. Start exploring our amazing collection!</p>
-                        <a href="shop.php" class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl">Start Shopping</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <h3 class="fw-bold mb-4">My Orders</h3>
+                
+                <?php if(empty($all_orders)): ?>
+                    <div class="card border-0 shadow-sm rounded-3 text-center py-5">
+                        <div class="card-body py-5">
+                            <i class="bi bi-box-seam display-1 text-muted opacity-25"></i>
+                            <h4 class="mt-4 mb-2">No orders yet</h4>
+                            <p class="text-muted mb-4">Start shopping to see your orders here.</p>
+                            <a href="shop.php" class="btn btn-primary px-4">
+                                <i class="bi bi-bag me-2"></i>Start Shopping
+                            </a>
+                        </div>
                     </div>
                 <?php else: ?>
-                    <?php foreach($all_orders as $order): ?>
-                    <div class="bg-white rounded-[2rem] soft-shadow border border-slate-100 overflow-hidden group hover:border-brand-500/20 transition-all">
-                        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
-                            <div class="flex gap-8">
-                                <div>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Order Date</p>
-                                    <p class="text-sm font-bold text-slate-700"><?= date('M d, Y', strtotime($order['created_at'])) ?></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Order Total</p>
-                                    <p class="text-sm font-black text-brand-600"><?= formatPrice($order['total_amount']) ?></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Order ID</p>
-                                    <p class="text-sm font-bold text-slate-700">#ARS-<?= $order['id'] ?></p>
-                                </div>
-                            </div>
-                            <div>
-                                <?php
-                                $status_classes = [
-                                    'Pending' => 'bg-amber-100 text-amber-700',
-                                    'Confirmed' => 'bg-blue-100 text-blue-700',
-                                    'Shipped' => 'bg-purple-100 text-purple-700',
-                                    'Delivered' => 'bg-emerald-100 text-emerald-700',
-                                    'Cancelled' => 'bg-red-100 text-red-700'
-                                ];
-                                $class = $status_classes[$order['delivery_status']] ?? 'bg-slate-100 text-slate-700';
-                                ?>
-                                <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest <?= $class ?>">
-                                    <?= $order['delivery_status'] ?>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="p-8">
-                            <!-- In a real system, you'd fetch order items here -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center">
-                                        <i data-lucide="package" class="w-6 h-6 text-slate-300"></i>
+                    <div class="row g-3">
+                        <?php foreach($all_orders as $order): ?>
+                            <?php
+                            $status_class = match($order['delivery_status']) {
+                                'Delivered' => 'success',
+                                'Shipped' => 'info',
+                                'Confirmed' => 'primary',
+                                'Cancelled' => 'danger',
+                                default => 'warning'
+                            };
+                            $payment_badge = match($order['payment_status']) {
+                                'Paid' => '<span class="badge bg-success ms-2">Paid</span>',
+                                'Failed' => '<span class="badge bg-danger ms-2">Failed</span>',
+                                default => ''
+                            };
+                            ?>
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm rounded-3">
+                                    <div class="card-body p-4">
+                                        <div class="row align-items-center g-3">
+                                            <div class="col-auto">
+                                                <div class="bg-light rounded-3 p-3">
+                                                    <i class="bi bi-box-seam text-primary fs-4"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                                    <a href="order-details.php?id=<?= $order['id'] ?>" class="text-decoration-none fw-bold h5 mb-0">
+                                                        #ARS-<?= str_pad($order['id'], 6, '0', STR_PAD_LEFT) ?>
+                                                    </a>
+                                                    <span class="badge bg-<?= $status_class ?>"><?= $order['delivery_status'] ?></span>
+                                                    <?= $payment_badge ?>
+                                                </div>
+                                                <p class="text-muted small mb-0 mt-1">
+                                                    <?= date('M d, Y \a\t h:i A', strtotime($order['created_at'])) ?> 
+                                                    • <?= $order['payment_method'] ?> 
+                                                    • <?= formatPrice($order['total_amount']) ?>
+                                                </p>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="order-details.php?id=<?= $order['id'] ?>" class="btn btn-outline-primary">
+                                                    View Details
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-900">Paid via <?= $order['payment_method'] ?></p>
-                                        <p class="text-xs text-slate-500 font-medium">Shipped to: <?= htmlspecialchars(substr($order['address'], 0, 40)) ?>...</p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button class="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-brand-600 transition-all shadow-lg shadow-slate-200">View Details</button>
-                                    <?php if($order['delivery_status'] === 'Delivered'): ?>
-                                        <button class="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all">Write Review</button>
-                                    <?php endif; ?>
                                 </div>
                             </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>

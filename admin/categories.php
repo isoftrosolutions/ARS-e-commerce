@@ -6,8 +6,9 @@ if (!is_admin()) {
 }
 
 // ── Delete ──────────────────────────────────────────────
-if (isset($_GET['delete'])) {
-    $del_id = (int)$_GET['delete'];
+if (isset($_POST['delete_category'])) {
+    require_csrf();
+    $del_id = (int)$_POST['id'];
     // Check if any products are tied to this category
     try {
         $count = $pdo->prepare("SELECT COUNT(*) FROM products WHERE category_id = ?");
@@ -92,6 +93,7 @@ include 'includes/header.php';
         <div class="bg-white p-6 rounded-2xl soft-shadow border border-slate-100 sticky top-6">
             <h3 class="text-lg font-bold text-slate-800 mb-4">Add New Category</h3>
             <form method="POST" action="categories.php" class="space-y-4">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="add">
                 <div>
                     <label for="new_name" class="block text-sm font-semibold text-slate-700 mb-1">Category Name</label>
@@ -124,7 +126,8 @@ include 'includes/header.php';
                             <?php if ($editing_id === (int)$c['id']): ?>
                                 <tr class="bg-brand-50/30">
                                     <td colspan="2" class="px-6 py-4">
-                                        <form method="POST" class="flex items-center gap-2">
+                                        <form method="POST" action="categories.php" class="flex items-center gap-2">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="edit">
                                             <input type="hidden" name="id" value="<?= $c['id'] ?>">
                                             <input type="text" name="name" value="<?= htmlspecialchars($c['name']) ?>" required
@@ -156,11 +159,13 @@ include 'includes/header.php';
                                             <a href="categories.php?edit=<?= $c['id'] ?>" class="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all" title="Edit">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                                             </a>
-                                            <a href="categories.php?delete=<?= $c['id'] ?>" 
-                                               onclick="return confirm('Delete this category?')"
-                                               class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all <?= $c['product_count'] > 0 ? 'opacity-30 cursor-not-allowed pointer-events-none' : '' ?>" title="Delete">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                            </a>
+                                            <form action="categories.php" method="POST" onsubmit="return confirm('Delete this category?')" class="inline">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="id" value="<?= $c['id'] ?>">
+                                                <button type="submit" name="delete_category" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all <?= $c['product_count'] > 0 ? 'opacity-30 cursor-not-allowed pointer-events-none' : '' ?>" title="Delete">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

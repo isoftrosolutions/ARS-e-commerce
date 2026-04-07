@@ -14,53 +14,40 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            900: '#1e3a8a',
-                        },
-                        sidebar: '#0f172a',
-                        sidebarActive: '#1e293b',
-                        sidebarText: '#94a3b8',
-                    }
-                }
-            }
-        }
-    </script>
+
+    <!-- ARS Admin CSS -->
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <?php 
+    $page_name = str_replace('.php', '', basename($_SERVER['PHP_SELF']));
+    $css_file = "../assets/css/admin-{$page_name}.css";
+    if (file_exists(__DIR__ . '/../../' . $css_file)): ?>
+        <link rel="stylesheet" href="<?= $css_file ?>">
+    <?php endif; ?>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .soft-shadow { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); }
+        /* Legacy Tailwind Class Bridges for Admin */
+        .bg-sidebar { background-color: var(--slate-900); }
+        .bg-sidebarActive { background-color: var(--slate-800); }
+        .text-sidebarText { color: var(--slate-400); }
     </style>
 </head>
-<body class="text-slate-800 antialiased flex h-screen overflow-hidden">
+<body class="admin text-slate-800 antialiased flex h-screen overflow-hidden">
 
     <!-- Sidebar -->
     <aside class="w-64 bg-sidebar text-sidebarText flex flex-col h-full flex-shrink-0 transition-all duration-300">
         <div class="h-16 flex items-center px-6 border-b border-slate-800">
             <a href="dashboard.php" class="text-white font-bold text-xl flex items-center gap-2">
-                <i data-lucide="shopping-bag" class="text-brand-500"></i> ARS Shop
+                <span class="w-8 h-8 bg-white rounded-lg border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <img src="../assets/logo.jpeg" alt="ARS Shop Logo" class="w-full h-full object-contain p-1">
+                </span>
+                ARS Shop
             </a>
         </div>
 

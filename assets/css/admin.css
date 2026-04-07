@@ -1,0 +1,88 @@
+/* Admin Panel Base Styles */
+
+body.admin {
+    background-color: var(--slate-50);
+}
+
+.sidebar {
+    width: 260px;
+    background-color: var(--slate-900);
+    color: var(--slate-400);
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    color: var(--slate-400);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+    background-color: var(--slate-800);
+    color: white;
+}
+
+.admin-header {
+    height: 64px;
+    background: white;
+    border-bottom: 1px solid var(--slate-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid var(--slate-100);
+    box-shadow: var(--soft-shadow);
+}
+
+.stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.table-card {
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid var(--slate-100);
+    box-shadow: var(--soft-shadow);
+    overflow: hidden;
+}
+
+.admin-table th {
+    background-color: var(--slate-50);
+    color: var(--slate-500);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+}
+
+.admin-table td {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--slate-100);
+    vertical-align: middle;
+}
+
+.status-pill {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}

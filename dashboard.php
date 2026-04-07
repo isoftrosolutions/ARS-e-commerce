@@ -8,17 +8,14 @@ if (!is_logged_in()) {
 try {
     $user_id = $_SESSION['user_id'];
     
-    // Fetch User Info
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
 
-    // Fetch stats
     $stmt_stats = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE user_id = ?");
     $stmt_stats->execute([$user_id]);
     $total_orders = $stmt_stats->fetchColumn();
 
-    // Fetch recent orders
     $stmt_recent = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 3");
     $stmt_recent->execute([$user_id]);
     $recent_orders = $stmt_recent->fetchAll();
@@ -28,139 +25,201 @@ try {
 }
 
 $page_title = "My Account Dashboard";
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header-bootstrap.php';
 ?>
 
-<div class="container mx-auto px-4 md:px-6 py-12">
-    <div class="flex flex-col lg:flex-row gap-12">
-        
-        <!-- Account Sidebar -->
-        <aside class="w-full lg:w-64 flex-shrink-0">
-            <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-8">
-                <div class="flex flex-col items-center text-center mb-8">
-                    <div class="w-20 h-20 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-2xl font-black border-4 border-white soft-shadow mb-4 uppercase">
-                        <?= substr($user['full_name'], 0, 1) ?>
+<!-- Breadcrumb -->
+<section class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<!-- Dashboard Content -->
+<section class="py-4 py-md-5">
+    <div class="container">
+        <div class="row g-4">
+            
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 100px;">
+                    <div class="card-body p-4 text-center">
+                        <div class="user-avatar-lg mx-auto mb-3">
+                            <?= substr($user['full_name'], 0, 1) ?>
+                        </div>
+                        <h5 class="fw-bold mb-1"><?= htmlspecialchars($user['full_name']) ?></h5>
+                        <p class="text-muted small mb-3">Customer Since <?= date('Y', strtotime($user['created_at'])) ?></p>
                     </div>
-                    <h2 class="text-lg font-black text-slate-900"><?= htmlspecialchars($user['full_name']) ?></h2>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Customer Since <?= date('Y', strtotime($user['created_at'])) ?></p>
-                </div>
-
-                <nav class="flex flex-col gap-2">
-                    <a href="dashboard.php" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-600 text-white font-bold transition-all shadow-lg shadow-brand-600/20">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
-                    </a>
-                    <a href="orders.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="package" class="w-4 h-4"></i> My Orders
-                    </a>
-                    <a href="wishlist.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="heart" class="w-4 h-4"></i> Wishlist
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="settings" class="w-4 h-4"></i> Settings
-                    </a>
-                    <hr class="my-4 border-slate-100">
-                    <a href="auth/logout.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-bold transition-all">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-                    </a>
-                </nav>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <div class="flex-grow space-y-10">
-            <div>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">Account Overview</h1>
-                <p class="text-slate-500 font-medium mt-1">Welcome back, <?= explode(' ', $user['full_name'])[0] ?>!</p>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-8 rounded-3xl soft-shadow border border-slate-100">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Orders</p>
-                    <p class="text-3xl font-black text-slate-900"><?= $total_orders ?></p>
-                </div>
-                <div class="bg-white p-8 rounded-3xl soft-shadow border border-slate-100">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Active Cart</p>
-                    <p class="text-3xl font-black text-slate-900"><?= get_cart_count() ?> <span class="text-sm font-bold text-slate-400">items</span></p>
-                </div>
-                <div class="bg-white p-8 rounded-3xl soft-shadow border border-slate-100">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Saved Items</p>
-                    <p class="text-3xl font-black text-slate-900">0</p>
-                </div>
-            </div>
-
-            <!-- Recent Orders -->
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="text-lg font-black text-slate-900">Recent Orders</h3>
-                    <a href="orders.php" class="text-xs font-black text-brand-600 uppercase tracking-widest hover:underline">View All</a>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50/50">
-                                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Order ID</th>
-                                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 text-sm">
-                            <?php foreach($recent_orders as $order): ?>
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-8 py-5 font-bold text-slate-900">#ARS-<?= $order['id'] ?></td>
-                                <td class="px-8 py-5 text-slate-500 font-medium"><?= date('M d, Y', strtotime($order['created_at'])) ?></td>
-                                <td class="px-8 py-5 text-center">
-                                    <?php
-                                    $status_classes = [
-                                        'Pending' => 'bg-amber-100 text-amber-700',
-                                        'Confirmed' => 'bg-blue-100 text-blue-700',
-                                        'Shipped' => 'bg-purple-100 text-purple-700',
-                                        'Delivered' => 'bg-emerald-100 text-emerald-700',
-                                        'Cancelled' => 'bg-red-100 text-red-700'
-                                    ];
-                                    $class = $status_classes[$order['delivery_status']] ?? 'bg-slate-100 text-slate-700';
-                                    ?>
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter <?= $class ?>">
-                                        <?= $order['delivery_status'] ?>
-                                    </span>
-                                </td>
-                                <td class="px-8 py-5 text-right font-black text-slate-900"><?= formatPrice($order['total_amount']) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                            <?php if(empty($recent_orders)): ?>
-                            <tr>
-                                <td colspan="4" class="px-8 py-12 text-center text-slate-400 font-medium">No orders placed yet.</td>
-                            </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Profile Info -->
-            <div class="bg-white p-8 md:p-10 rounded-[2.5rem] soft-shadow border border-slate-100">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-lg font-black text-slate-900">Profile Information</h3>
-                    <button class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Edit</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email Address</p>
-                        <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars($user['email'] ?: 'Not provided') ?></p>
+                    <hr class="my-0">
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush rounded-0">
+                            <a href="dashboard.php" class="list-group-item list-group-item-action active">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a>
+                            <a href="orders.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-box-seam me-2"></i>My Orders
+                            </a>
+                            <a href="wishlist.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-heart me-2"></i>Wishlist
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear me-2"></i>Settings
+                            </a>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mobile Number</p>
-                        <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars($user['mobile']) ?></p>
+                    <div class="card-body border-top">
+                        <a href="auth/logout.php" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </a>
                     </div>
-                    <div class="md:col-span-2">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Default Address</p>
-                        <p class="text-sm font-bold text-slate-700 leading-relaxed"><?= nl2br(htmlspecialchars($user['address'])) ?></p>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                
+                <!-- Welcome Card -->
+                <div class="card border-0 shadow-sm rounded-3 bg-primary text-white mb-4">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h4 class="fw-bold mb-1">Welcome back, <?= htmlspecialchars(explode(' ', $user['full_name'])[0]) ?>!</h4>
+                                <p class="mb-0 opacity-75">Manage your orders and account settings</p>
+                            </div>
+                            <div class="col-auto">
+                                <a href="shop.php" class="btn btn-light btn-lg">
+                                    <i class="bi bi-bag me-2"></i>Shop Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                            <i class="bi bi-box-seam text-primary fs-4"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h3 class="mb-0"><?= number_format($total_orders) ?></h3>
+                                        <p class="text-muted mb-0 small">Total Orders</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                                            <i class="bi bi-clock-history text-warning fs-4"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h3 class="mb-0"><?= number_format($pdo->prepare("SELECT COUNT(*) FROM orders WHERE user_id = ? AND delivery_status = 'Pending'")->execute([$user_id]) ? 1 : 0) ?></h3>
+                                        <p class="text-muted mb-0 small">Pending Orders</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                                            <i class="bi bi-heart text-success fs-4"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h3 class="mb-0"><?= number_format($pdo->prepare("SELECT COUNT(*) FROM wishlist WHERE user_id = ?")->execute([$user_id]) ? 1 : 0) ?></h3>
+                                        <p class="text-muted mb-0 small">Wishlist Items</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders -->
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">Recent Orders</h5>
+                            <a href="orders.php" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <?php if(empty($recent_orders)): ?>
+                            <div class="text-center py-5">
+                                <i class="bi bi-bag display-4 text-muted opacity-25"></i>
+                                <p class="text-muted mt-3 mb-4">No orders yet</p>
+                                <a href="shop.php" class="btn btn-primary">Start Shopping</a>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="border-0 rounded-start">Order ID</th>
+                                            <th class="border-0">Date</th>
+                                            <th class="border-0">Status</th>
+                                            <th class="border-0">Total</th>
+                                            <th class="border-0 rounded-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach($recent_orders as $order): ?>
+                                            <tr>
+                                                <td class="align-middle">
+                                                    <a href="order-details.php?id=<?= $order['id'] ?>" class="text-decoration-none fw-semibold">
+                                                        #ARS-<?= str_pad($order['id'], 6, '0', STR_PAD_LEFT) ?>
+                                                    </a>
+                                                </td>
+                                                <td class="align-middle text-muted"><?= date('M d, Y', strtotime($order['created_at'])) ?></td>
+                                                <td class="align-middle">
+                                                    <?php
+                                                    $status_class = match($order['delivery_status']) {
+                                                        'Delivered' => 'success',
+                                                        'Shipped' => 'info',
+                                                        'Confirmed' => 'primary',
+                                                        'Cancelled' => 'danger',
+                                                        default => 'warning'
+                                                    };
+                                                    ?>
+                                                    <span class="badge bg-<?= $status_class ?>"><?= $order['delivery_status'] ?></span>
+                                                </td>
+                                                <td class="align-middle fw-semibold"><?= formatPrice($order['total_amount']) ?></td>
+                                                <td class="align-middle">
+                                                    <a href="order-details.php?id=<?= $order['id'] ?>" class="btn btn-sm btn-outline-secondary">
+                                                        View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>

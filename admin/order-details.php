@@ -174,6 +174,7 @@ include 'includes/header.php';
                 <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-500"></i> Update Order
             </h3>
             <form method="POST" class="space-y-5">
+                <?= csrf_field() ?>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Delivery Status</label>
                     <select name="delivery_status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">

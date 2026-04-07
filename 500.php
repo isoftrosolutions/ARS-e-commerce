@@ -9,8 +9,8 @@ $site_name = 'ARS Shop';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Error | <?= $site_name ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/app.css">
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased">
 <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center">

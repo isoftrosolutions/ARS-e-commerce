@@ -53,106 +53,74 @@ if (empty($token)) {
 }
 
 $page_title = "Verify Email";
+require_once __DIR__ . '/../includes/header-bootstrap.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $page_title ?> | <?= SITE_NAME ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            500: '#f97316',
-                            600: '#ea580c',
-                            900: '#7c2d12',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased">
-    <div class="min-h-screen flex flex-col items-center justify-center p-6">
-        <a href="../index.php" class="flex items-center gap-2 mb-10 group">
-            <div class="w-12 h-12 bg-brand-600 text-white rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-xl shadow-brand-600/20">
-                <i data-lucide="shopping-bag" class="w-7 h-7"></i>
-            </div>
-            <span class="text-2xl font-black tracking-tighter text-slate-900">ARS<span class="text-brand-600">SHOP</span></span>
-        </a>
 
-        <div class="w-full max-w-md bg-white rounded-[2.5rem] soft-shadow border border-slate-100 p-8 md:p-12">
-            <?php if ($success): ?>
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-                        <i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>
-                    </div>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight mb-3">
-                        <?= isset($alreadyVerified) ? 'Already Verified!' : 'Email Verified!' ?>
-                    </h1>
-                    <p class="text-slate-500 font-medium mb-4">
-                        <?= isset($alreadyVerified) 
-                            ? 'Your email was already verified. You can login to your account.' 
-                            : 'Your email has been successfully verified. You can now login to your account.' ?>
-                    </p>
-                    
-                    <?php if (isset($_SESSION['dev_verify_token']) && isset($_SESSION['dev_verify_email'])): ?>
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-left">
-                            <p class="text-yellow-700 text-xs font-bold mb-2">⚠️ DEV MODE - Email not configured:</p>
-                            <p class="text-yellow-600 text-xs mb-1">Email: <?= htmlspecialchars($_SESSION['dev_verify_email']) ?></p>
-                            <p class="text-yellow-600 text-xs break-all">Token: <?= htmlspecialchars($_SESSION['dev_verify_token']) ?></p>
-                            <a href="verify-email.php?token=<?= htmlspecialchars($_SESSION['dev_verify_token']) ?>" class="text-yellow-700 text-xs font-bold hover:underline mt-2 inline-block">Click to verify</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="text-center mb-4">
+                <a href="../index.php" class="text-decoration-none d-inline-block mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-white border rounded-3 d-flex align-items-center justify-content-center overflow-hidden" style="width:48px;height:48px;">
+                            <img src="../assets/logo.jpeg" alt="ARS Shop Logo" style="width:100%;height:100%;object-fit:contain;padding:6px;">
                         </div>
-                    <?php endif; ?>
-                    
-                    <a href="login.php" class="inline-block w-full py-4 bg-brand-600 text-white rounded-2xl font-black text-center hover:bg-brand-500 transition-all transform hover:-translate-y-1 shadow-xl shadow-brand-500/20">
-                        Login Now
-                    </a>
-                </div>
-            <?php else: ?>
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="x-circle" class="w-10 h-10 text-red-600"></i>
+                        <span class="fs-4 fw-bold text-dark">ARS<span class="text-primary">SHOP</span></span>
                     </div>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight mb-3">Verification Failed</h1>
-                    <p class="text-slate-500 font-medium mb-8">
-                        <?= htmlspecialchars($error) ?>
-                    </p>
-                    <?php if (strpos($error, 'expired') !== false || strpos($error, 'invalid') !== false): ?>
-                        <a href="signup.php" class="inline-block w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-center hover:bg-brand-600 transition-all">
-                            Register Again
+                </a>
+            </div>
+
+            <div class="card shadow">
+                <?php if ($success): ?>
+                    <div class="card-body text-center p-5">
+                        <div class="success-icon mb-4">
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                        </div>
+                        <h2 class="h4 fw-bold mb-3">
+                            <?= isset($alreadyVerified) ? 'Already Verified!' : 'Email Verified!' ?>
+                        </h2>
+                        <p class="text-muted mb-4">
+                            <?= isset($alreadyVerified) 
+                                ? 'Your email was already verified. You can login to your account.' 
+                                : 'Your email has been successfully verified. You can now login to your account.' ?>
+                        </p>
+                        
+                        <?php if (isset($_SESSION['dev_verify_token']) && isset($_SESSION['dev_verify_email'])): ?>
+                            <div class="alert alert-warning text-start" role="alert">
+                                <strong class="d-block mb-2">DEV MODE - Email not configured:</strong>
+                                <small class="d-block mb-1">Email: <?= htmlspecialchars($_SESSION['dev_verify_email']) ?></small>
+                                <small class="d-block text-break mb-2">Token: <?= htmlspecialchars($_SESSION['dev_verify_token']) ?></small>
+                                <a href="verify-email.php?token=<?= htmlspecialchars($_SESSION['dev_verify_token']) ?>" class="fw-bold">Click to verify</a>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <a href="login.php" class="btn btn-primary w-100 py-2 fw-bold">
+                            Login Now
                         </a>
-                    <?php else: ?>
-                        <a href="login.php" class="inline-block w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-center hover:bg-brand-600 transition-all">
-                            Back to Login
-                        </a>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                        </div>
+                        <h2 class="h4 fw-bold mb-3">Verification Failed</h2>
+                        <p class="text-muted mb-4">
+                            <?= htmlspecialchars($error) ?>
+                        </p>
+                        <?php if (strpos($error, 'expired') !== false || strpos($error, 'invalid') !== false): ?>
+                            <a href="signup.php" class="btn btn-dark w-100 py-2 fw-bold">
+                                Register Again
+                            </a>
+                        <?php else: ?>
+                            <a href="login.php" class="btn btn-dark w-100 py-2 fw-bold">
+                                Back to Login
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
+</div>
 
-    <script>
-        lucide.createIcons();
-    </script>
-</body>
-</html>
+<?php require_once __DIR__ . '/../includes/footer-bootstrap.php'; ?>

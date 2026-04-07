@@ -1,0 +1,62 @@
+/* Shop Page Styles */
+
+/* Filter Sidebar */
+.filter-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--slate-100);
+}
+
+.filter-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slate-400);
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.category-filter-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--slate-600);
+    transition: all 0.3s ease;
+}
+
+.category-filter-link:hover {
+    background-color: var(--brand-50);
+    color: var(--brand-600);
+}
+
+.category-filter-link.active {
+    background-color: var(--brand-600);
+    color: white;
+}
+
+/* Sorting & Results */
+.shop-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.results-count {
+    font-size: 0.875rem;
+    color: var(--slate-500);
+}
+
+.sort-select {
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--slate-200);
+    font-size: 0.875rem;
+    background-color: white;
+}

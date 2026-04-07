@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header-bootstrap.php';
 
 // Fetch featured products
 try {
@@ -14,168 +14,212 @@ try {
 ?>
 
 <!-- Hero Section -->
-<section class="relative bg-slate-900 overflow-hidden">
-    <div class="absolute inset-0 opacity-40">
-        <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover" alt="Hero Background">
-    </div>
-    <div class="relative container mx-auto px-4 md:px-6 py-20 md:py-32 flex flex-col items-center text-center">
-        <span class="inline-block px-4 py-1.5 bg-brand-600 text-white text-xs font-bold tracking-widest uppercase rounded-full mb-6 animate-bounce">
-            New Season Arrival
-        </span>
-        <h1 class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tighter leading-tight max-w-4xl">
-            UPGRADE YOUR <span class="text-brand-500">LIFESTYLE</span> WITH ARS
-        </h1>
-        <p class="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
-            Discover the latest trends in electronics, fashion, and home essentials. Premium quality, delivered fast to your doorstep.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <a href="shop.php" class="px-8 py-4 bg-brand-600 text-white rounded-2xl font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-600/20 transform hover:-translate-y-1">
-                Shop Collection
-            </a>
-            <a href="#featured" class="px-8 py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all transform hover:-translate-y-1">
-                View Deals
-            </a>
+<section class="hero-section position-relative overflow-hidden">
+    <div class="hero-overlay"></div>
+    <div class="hero-bg"></div>
+    <div class="container position-relative py-5 py-md-5">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-10 col-xl-8">
+                <span class="badge bg-primary px-3 py-2 mb-3 mb-md-4 animate-bounce-in">
+                    <i class="bi bi-stars me-1"></i> New Season Arrival
+                </span>
+                <h1 class="display-5 display-md-4 display-lg-3 fw-bold text-white mb-3 mb-md-4 lh-base">
+                    UPGRADE YOUR <span class="text-warning">LIFESTYLE</span> WITH ARS
+                </h1>
+                <p class="lead text-light opacity-75 mb-4 mb-md-5 mx-auto" style="max-width: 600px;">
+                    Discover the latest trends in electronics, fashion, and home essentials. Premium quality, delivered fast to your doorstep.
+                </p>
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="shop.php" class="btn btn-primary btn-lg px-4 px-md-5 py-3 fw-semibold shadow-lg">
+                        <i class="bi bi-bag me-2"></i>Shop Collection
+                    </a>
+                    <a href="#featured" class="btn btn-outline-light btn-lg px-4 px-md-5 py-3 fw-semibold">
+                        <i class="bi bi-percent me-2"></i>View Deals
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- Features Bar -->
-<section class="bg-white border-b border-slate-100 py-8 relative z-10 -mt-8 mx-4 md:mx-auto container rounded-3xl soft-shadow grid grid-cols-2 lg:grid-cols-4 gap-8 px-8">
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <i data-lucide="truck" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <h4 class="font-bold text-sm">Free Shipping</h4>
-            <p class="text-xs text-slate-500">On orders over Rs. 1,000</p>
-        </div>
-    </div>
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <i data-lucide="shield-check" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <h4 class="font-bold text-sm">Secure Payment</h4>
-            <p class="text-xs text-slate-500">100% Protected transfers</p>
-        </div>
-    </div>
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <i data-lucide="refresh-cw" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <h4 class="font-bold text-sm">Easy Returns</h4>
-            <p class="text-xs text-slate-500">7-Day easy replacement</p>
-        </div>
-    </div>
-    <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <i data-lucide="headphones" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <h4 class="font-bold text-sm">24/7 Support</h4>
-            <p class="text-xs text-slate-500">Expert help anytime</p>
+<section class="features-section bg-white shadow-sm py-4 py-md-5">
+    <div class="container">
+        <div class="row g-4 text-center text-md-start">
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                    <div class="feature-icon feature-icon-blue">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold small">Free Shipping</h6>
+                        <small class="text-muted">Orders over Rs. 1,000</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                    <div class="feature-icon feature-icon-green">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold small">Secure Payment</h6>
+                        <small class="text-muted">100% Protected</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                    <div class="feature-icon feature-icon-orange">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold small">Easy Returns</h6>
+                        <small class="text-muted">7-Day Replacement</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                    <div class="feature-icon feature-icon-purple">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold small">24/7 Support</h6>
+                        <small class="text-muted">Expert Help</small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- Category Grid -->
-<section class="container mx-auto px-4 md:px-6 py-20">
-    <div class="flex items-center justify-between mb-10">
-        <div>
-            <h2 class="text-3xl font-black text-slate-900 tracking-tight">Shop by Category</h2>
-            <p class="text-slate-500 mt-1">Handpicked categories for your needs.</p>
-        </div>
-        <a href="shop.php" class="text-brand-600 font-bold hover:underline flex items-center gap-1">
-            All Categories <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </a>
-    </div>
-    
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-        <?php foreach($categories as $cat): ?>
-            <a href="shop.php?category=<?= $cat['id'] ?>" class="group">
-                <div class="aspect-square bg-white rounded-3xl soft-shadow border border-slate-100 flex flex-col items-center justify-center p-6 transition-all group-hover:bg-brand-600 group-hover:-translate-y-2">
-                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-4 transition-all group-hover:bg-white/20 group-hover:text-white">
-                        <i data-lucide="layers" class="w-8 h-8"></i>
-                    </div>
-                    <h4 class="font-bold text-slate-800 transition-all group-hover:text-white"><?= htmlspecialchars($cat['name']) ?></h4>
-                </div>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
-
-<!-- Featured Products -->
-<section id="featured" class="bg-slate-100/50 py-20">
-    <div class="container mx-auto px-4 md:px-6">
-        <div class="flex items-center justify-between mb-12">
+<section class="py-5 py-md-5">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4 mb-md-5">
             <div>
-                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Featured Products</h2>
-                <p class="text-slate-500 mt-1">Trending items that people love right now.</p>
+                <h2 class="h3 h2-md fw-bold text-dark mb-1">Shop by Category</h2>
+                <p class="text-muted mb-0">Handpicked categories for your needs</p>
             </div>
-            <div class="flex gap-2">
-                <button class="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center hover:bg-brand-600 hover:text-white transition-all transition-colors"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                <button class="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center hover:bg-brand-600 hover:text-white transition-all transition-colors"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
-            </div>
+            <a href="shop.php" class="btn btn-outline-primary btn-sm d-none d-md-inline-flex align-items-center gap-1">
+                All Categories <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <?php foreach($latest_products as $p): ?>
-                <div class="bg-white rounded-3xl soft-shadow border border-slate-100 overflow-hidden group hover:border-brand-500/30 transition-all transition-colors">
-                    <div class="relative aspect-square overflow-hidden bg-slate-50">
-                        <?php if($p['discount_price']): ?>
-                            <div class="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter">
-                                Save <?= round((($p['price'] - $p['discount_price']) / $p['price']) * 100) ?>%
+        
+        <div class="row g-3 g-md-4">
+            <?php foreach($categories as $cat): ?>
+                <div class="col-4 col-md-2">
+                    <a href="shop.php?category=<?= $cat['id'] ?>" class="text-decoration-none">
+                        <div class="category-card text-center p-3 p-md-4 rounded-3 bg-white shadow-sm h-100">
+                            <div class="category-icon mb-2 mb-md-3">
+                                <i class="bi bi-grid-3x3-gap"></i>
                             </div>
-                        <?php endif; ?>
-                        <button class="absolute top-4 right-4 z-10 w-9 h-9 bg-white/80 backdrop-blur-md text-slate-400 rounded-full flex items-center justify-center hover:text-red-500 transition-all scale-0 group-hover:scale-100 transform duration-300">
-                            <i data-lucide="heart" class="w-5 h-5"></i>
-                        </button>
-                        <a href="product.php?slug=<?= $p['slug'] ?>">
-                            <img src="<?= $p['image'] ? UPLOAD_DIR . $p['image'] : 'https://via.placeholder.com/400x400?text=' . urlencode($p['name']) ?>" 
-                                 class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 p-4" alt="<?= $p['name'] ?>">
-                        </a>
-                    </div>
-                    <div class="p-6">
-                        <span class="text-[10px] font-bold text-brand-600 uppercase tracking-widest"><?= htmlspecialchars($p['cat_name'] ?? 'General') ?></span>
-                        <a href="product.php?slug=<?= $p['slug'] ?>">
-                            <h3 class="text-lg font-bold text-slate-800 mt-1 line-clamp-1 group-hover:text-brand-600 transition-colors"><?= htmlspecialchars($p['name']) ?></h3>
-                        </a>
-                        <div class="flex items-center gap-1 mt-2">
-                            <div class="flex text-amber-400"><i data-lucide="star" class="w-3 h-3 fill-current"></i><i data-lucide="star" class="w-3 h-3 fill-current"></i><i data-lucide="star" class="w-3 h-3 fill-current"></i><i data-lucide="star" class="w-3 h-3 fill-current"></i><i data-lucide="star" class="w-3 h-3 fill-current"></i></div>
-                            <span class="text-[10px] font-bold text-slate-400">(24 Reviews)</span>
+                            <h6 class="mb-0 fw-semibold small"><?= htmlspecialchars($cat['name']) ?></h6>
                         </div>
-                        <div class="flex items-center justify-between mt-6">
-                            <div>
-                                <span class="text-xl font-black text-slate-900"><?= formatPrice($p['discount_price'] ?: $p['price']) ?></span>
-                                <?php if($p['discount_price']): ?>
-                                    <span class="text-xs text-slate-400 line-through ml-2"><?= formatPrice($p['price']) ?></span>
-                                <?php endif; ?>
-                            </div>
-                            <button onclick="addToCart(<?= $p['id'] ?>)" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-brand-600 transition-all transform group-hover:scale-110">
-                                <i data-lucide="plus" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </div>
+                    </a>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
 
-<!-- Call to Action -->
-<section class="container mx-auto px-4 md:px-6 py-20">
-    <div class="bg-brand-600 rounded-[3rem] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 overflow-hidden relative">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
-        <div class="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-24 -mb-24"></div>
-        
-        <div class="relative z-10 max-w-xl text-center md:text-left">
-            <h2 class="text-3xl md:text-5xl font-black text-white leading-tight mb-6">READY TO EXPERIENCE PREMIUM SHOPPING?</h2>
-            <p class="text-brand-100 text-lg">Join 10,000+ satisfied customers across Nepal. Get exclusive deals delivered to your inbox.</p>
+<!-- Featured Products -->
+<section id="featured" class="bg-light py-5 py-md-5">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4 mb-md-5">
+            <div>
+                <h2 class="h3 h2-md fw-bold text-dark mb-1">Featured Products</h2>
+                <p class="text-muted mb-0">Trending items that people love right now</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-icon rounded-circle" type="button">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-icon rounded-circle" type="button">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
-        <div class="relative z-10 flex flex-col gap-4 w-full md:w-auto">
-            <a href="auth/signup.php" class="px-10 py-5 bg-white text-brand-600 rounded-2xl font-black hover:bg-slate-100 transition-all text-center shadow-xl">Create Account</a>
-            <p class="text-center text-brand-200 text-xs font-bold uppercase tracking-widest">No Credit Card Required</p>
+
+        <div class="row g-4">
+            <?php foreach($latest_products as $p): ?>
+                <div class="col-6 col-lg-3">
+                    <div class="product-card card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                        <div class="position-relative">
+                            <?php if($p['discount_price']): ?>
+                                <span class="badge bg-danger position-absolute top-0 start-0 m-2 m-md-3">
+                                    -<?= round((($p['price'] - $p['discount_price']) / $p['price']) * 100) ?>%
+                                </span>
+                            <?php endif; ?>
+                            <span class="badge bg-dark position-absolute top-0 end-0 m-2 m-md-3 wishlist-badge">
+                                <i class="bi bi-heart"></i>
+                            </span>
+                            <a href="product.php?slug=<?= $p['slug'] ?>">
+                                <img src="<?= $p['image'] ? UPLOAD_DIR . $p['image'] : 'https://via.placeholder.com/400x400?text=' . urlencode($p['name']) ?>" 
+                                     class="card-img-top p-3 p-md-4" 
+                                     alt="<?= $p['name'] ?>" 
+                                     loading="lazy"
+                                     style="height: 180px; object-fit: contain;">
+                            </a>
+                        </div>
+                        <div class="card-body text-center p-3 p-md-4">
+                            <span class="badge bg-light text-primary mb-2"><?= htmlspecialchars($p['cat_name'] ?? 'General') ?></span>
+                            <a href="product.php?slug=<?= $p['slug'] ?>" class="text-decoration-none">
+                                <h5 class="card-title h6 fw-bold text-dark mb-2 line-clamp-1"><?= htmlspecialchars($p['name']) ?></h5>
+                            </a>
+                            <div class="text-warning mb-2 small">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                                <span class="text-muted ms-1">(24)</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="fw-bold text-dark h5 mb-0"><?= formatPrice($p['discount_price'] ?: $p['price']) ?></span>
+                                    <?php if($p['discount_price']): ?>
+                                        <small class="text-muted text-decoration-line-through d-block"><?= formatPrice($p['price']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+                                <button onclick="addToCart(<?= $p['id'] ?>)" class="btn btn-dark btn-sm rounded-2">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="shop.php" class="btn btn-outline-dark btn-lg px-5">
+                View All Products <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 py-md-5">
+    <div class="container">
+        <div class="cta-section rounded-4 p-4 p-md-5 p-lg-5 position-relative overflow-hidden">
+            <div class="cta-decoration cta-decoration-1"></div>
+            <div class="cta-decoration cta-decoration-2"></div>
+            <div class="row align-items-center justify-content-between position-relative">
+                <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0">
+                    <h2 class="h2 h1-lg fw-bold text-white mb-3">READY TO EXPERIENCE PREMIUM SHOPPING?</h2>
+                    <p class="text-white opacity-75 mb-0 d-none d-md-block">Join 10,000+ satisfied customers across Nepal. Get exclusive deals delivered to your inbox.</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <a href="auth/signup.php" class="btn btn-light btn-lg px-5 fw-bold mb-2">
+                        <i class="bi bi-person-plus me-2 text-dark"></i>
+                        <span class="text-dark" style="color: #0f172a !important;">Create Account</span><i class="bi bi-arrow-right ms-2 text-dark"></i>
+                    </a>
+                    <small class="text-white opacity-50 d-block">No Credit Card Required</small>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -186,4 +230,4 @@ try {
     }
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>

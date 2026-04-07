@@ -1,0 +1,57 @@
+/* Cart Page Styles */
+
+.cart-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 1rem;
+}
+
+.cart-row {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: var(--soft-shadow);
+}
+
+.cart-item-image {
+    width: 6rem;
+    height: 6rem;
+    border-radius: 1rem;
+    object-fit: cover;
+}
+
+.cart-item-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--slate-900);
+}
+
+.cart-item-price {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--brand-600);
+}
+
+.cart-summary {
+    background: white;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--slate-100);
+    position: sticky;
+    top: 6rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.summary-total {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--slate-900);
+    border-top: 1px solid var(--slate-100);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}

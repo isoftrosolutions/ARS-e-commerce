@@ -31,171 +31,184 @@ $stmt->execute([$order_id]);
 $items = $stmt->fetchAll();
 
 $status_colors = [
-    'Pending' => 'bg-amber-100 text-amber-700',
-    'Confirmed' => 'bg-blue-100 text-blue-700',
-    'Shipped' => 'bg-purple-100 text-purple-700',
-    'Delivered' => 'bg-green-100 text-green-700',
-    'Cancelled' => 'bg-red-100 text-red-700'
+    'Pending' => 'bg-warning text-dark',
+    'Confirmed' => 'bg-primary',
+    'Shipped' => 'bg-purple',
+    'Delivered' => 'bg-success',
+    'Cancelled' => 'bg-danger'
 ];
 
 $payment_colors = [
-    'Pending' => 'bg-amber-100 text-amber-700',
-    'Paid' => 'bg-green-100 text-green-700',
-    'Failed' => 'bg-red-100 text-red-700'
+    'Pending' => 'bg-warning text-dark',
+    'Paid' => 'bg-success',
+    'Failed' => 'bg-danger'
 ];
 
 $page_title = "Order #$order_id";
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/header-bootstrap.php';
 ?>
 
-<div class="container mx-auto px-4 md:px-6 py-12">
-    <div class="flex flex-col lg:flex-row gap-12">
-        <aside class="w-full lg:w-64 flex-shrink-0">
-            <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-8 sticky top-28">
-                <nav class="flex flex-col gap-2">
-                    <a href="dashboard.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
-                    </a>
-                    <a href="orders.php" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-600 text-white font-bold transition-all shadow-lg shadow-brand-600/20">
-                        <i data-lucide="package" class="w-4 h-4"></i> My Orders
-                    </a>
-                    <a href="wishlist.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 font-bold transition-all">
-                        <i data-lucide="heart" class="w-4 h-4"></i> Wishlist
-                    </a>
-                    <hr class="my-4 border-slate-100">
-                    <a href="auth/logout.php" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-bold transition-all">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-                    </a>
-                </nav>
+<div class="container py-4 py-lg-5">
+    <div class="row g-4">
+        <div class="col-12 col-lg-3">
+            <div class="card shadow-sm sticky-top" style="top: 100px;">
+                <div class="card-body p-2">
+                    <nav class="nav flex-column">
+                        <a href="dashboard.php" class="nav-link text-muted py-2 px-3 rounded">
+                            <i class="bi bi-grid-1x2 me-2"></i> Dashboard
+                        </a>
+                        <a href="orders.php" class="nav-link active bg-primary text-white py-2 px-3 rounded">
+                            <i class="bi bi-box-seam me-2"></i> My Orders
+                        </a>
+                        <a href="wishlist.php" class="nav-link text-muted py-2 px-3 rounded">
+                            <i class="bi bi-heart me-2"></i> Wishlist
+                        </a>
+                        <hr class="my-2">
+                        <a href="auth/logout.php" class="nav-link text-danger py-2 px-3 rounded">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </a>
+                    </nav>
+                </div>
             </div>
-        </aside>
+        </div>
 
-        <div class="flex-grow">
-            <div class="mb-8">
-                <a href="orders.php" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 transition-colors mb-4">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Orders
+        <div class="col-12 col-lg-9">
+            <div class="mb-4">
+                <a href="orders.php" class="text-decoration-none text-muted mb-3 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Orders
                 </a>
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                     <div>
-                        <h1 class="text-2xl font-black text-slate-900">Order #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?></h1>
-                        <p class="text-slate-500 text-sm mt-1">Placed on <?= date('F j, Y \a\t g:i A', strtotime($order['created_at'])) ?></p>
+                        <h1 class="h3 fw-bold mb-1">Order #<?= str_pad($order_id, 6, '0', STR_PAD_LEFT) ?></h1>
+                        <p class="text-muted mb-0 small">Placed on <?= date('F j, Y \a\t g:i A', strtotime($order['created_at'])) ?></p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="px-4 py-2 rounded-full text-sm font-bold <?= $status_colors[$order['delivery_status']] ?? 'bg-slate-100 text-slate-700' ?>">
+                    <div class="d-flex gap-2">
+                        <span class="badge <?= $status_colors[$order['delivery_status']] ?? 'bg-secondary' ?> px-3 py-2">
                             <?= htmlspecialchars($order['delivery_status']) ?>
                         </span>
-                        <span class="px-4 py-2 rounded-full text-sm font-bold <?= $payment_colors[$order['payment_status']] ?? 'bg-slate-100 text-slate-700' ?>">
+                        <span class="badge <?= $payment_colors[$order['payment_status']] ?? 'bg-secondary' ?> px-3 py-2">
                             <?= htmlspecialchars($order['payment_status']) ?>
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-6 md:p-8">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <i data-lucide="package" class="w-5 h-5 text-brand-600"></i>
-                            Order Items
-                        </h3>
-                        
-                        <div class="space-y-4">
-                            <?php foreach ($items as $item): ?>
-                            <div class="flex items-center gap-4 py-4 border-b border-slate-100 last:border-0">
-                                <div class="w-20 h-20 bg-slate-50 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+            <div class="row g-4">
+                <div class="col-12 col-lg-8">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold d-flex align-items-center">
+                                <i class="bi bi-box-seam text-primary me-2"></i> Order Items
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <?php foreach ($items as $index => $item): ?>
+                            <div class="d-flex align-items-center gap-3 p-3 <?= $index > 0 ? 'border-top' : '' ?>">
+                                <div class="flex-shrink-0" style="width:80px;height:80px;">
                                     <?php if ($item['image']): ?>
-                                        <img src="<?= UPLOAD_DIR . htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="w-full h-full object-contain">
+                                        <img src="<?= UPLOAD_DIR . htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="img-fluid rounded">
                                     <?php else: ?>
-                                        <i data-lucide="image" class="w-8 h-8 text-slate-400"></i>
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center h-100">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
-                                <div class="flex-grow">
-                                    <a href="product.php?slug=<?= htmlspecialchars($item['slug'] ?? '') ?>" class="font-bold text-slate-800 hover:text-brand-600 transition-colors">
+                                <div class="flex-grow-1">
+                                    <a href="product.php?slug=<?= htmlspecialchars($item['slug'] ?? '') ?>" class="text-decoration-none fw-semibold text-dark">
                                         <?= htmlspecialchars($item['name']) ?>
                                     </a>
-                                    <p class="text-sm text-slate-500 mt-1">
+                                    <p class="text-muted mb-0 small">
                                         <?= (int)$item['quantity'] ?> × <?= formatPrice($item['price']) ?>
                                     </p>
                                 </div>
-                                <div class="text-right">
-                                    <p class="font-black text-slate-900"><?= formatPrice($item['quantity'] * $item['price']) ?></p>
+                                <div class="text-end">
+                                    <p class="fw-bold mb-0"><?= formatPrice($item['quantity'] * $item['price']) ?></p>
                                 </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
-
-                        <div class="border-t border-slate-100 mt-6 pt-6">
-                            <div class="flex justify-between text-sm mb-2">
-                                <span class="text-slate-500">Subtotal</span>
-                                <span class="font-medium"><?= formatPrice($order['total_amount']) ?></span>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span class="fw-medium"><?= formatPrice($order['total_amount']) ?></span>
                             </div>
-                            <div class="flex justify-between text-sm mb-2">
-                                <span class="text-slate-500">Shipping</span>
-                                <span class="font-medium text-emerald-600">FREE</span>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Shipping</span>
+                                <span class="fw-medium text-success">FREE</span>
                             </div>
-                            <div class="flex justify-between text-lg font-black mt-4 pt-4 border-t border-slate-100">
+                            <div class="d-flex justify-content-between pt-2 border-top fw-bold">
                                 <span>Total</span>
-                                <span class="text-brand-600"><?= formatPrice($order['total_amount']) ?></span>
+                                <span class="text-primary"><?= formatPrice($order['total_amount']) ?></span>
                             </div>
                         </div>
                     </div>
 
                     <?php if ($order['payment_method'] !== 'COD' && !empty($order['transaction_id'])): ?>
-                    <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-6 md:p-8">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <i data-lucide="credit-card" class="w-5 h-5 text-brand-600"></i>
-                            Payment Details
-                        </h3>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Method</p>
-                                <p class="font-bold text-slate-800"><?= htmlspecialchars($order['payment_method']) ?></p>
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold d-flex align-items-center">
+                                <i class="bi bi-credit-card text-primary me-2"></i> Payment Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <p class="text-muted small mb-1">Method</p>
+                                    <p class="fw-semibold mb-0"><?= htmlspecialchars($order['payment_method']) ?></p>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <p class="text-muted small mb-1">Transaction ID</p>
+                                    <p class="fw-semibold mb-0 font-monospace"><?= htmlspecialchars($order['transaction_id']) ?></p>
+                                </div>
+                                <?php if (!empty($order['payment_proof'])): ?>
+                                <div class="col-12">
+                                    <p class="text-muted small mb-2">Payment Proof</p>
+                                    <a href="<?= UPLOAD_DIR . htmlspecialchars($order['payment_proof']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-image me-1"></i> View Screenshot
+                                    </a>
+                                </div>
+                                <?php endif; ?>
                             </div>
-                            <div>
-                                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Transaction ID</p>
-                                <p class="font-bold text-slate-800 font-mono"><?= htmlspecialchars($order['transaction_id']) ?></p>
-                            </div>
-                            <?php if (!empty($order['payment_proof'])): ?>
-                            <div class="col-span-2">
-                                <p class="text-xs text-slate-400 uppercase tracking-wider mb-2">Payment Proof</p>
-                                <a href="<?= UPLOAD_DIR . htmlspecialchars($order['payment_proof']) ?>" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">
-                                    <i data-lucide="image" class="w-4 h-4"></i> View Screenshot
-                                </a>
-                            </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endif; ?>
                 </div>
 
-                <div class="space-y-6">
-                    <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-6 md:p-8">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-5 h-5 text-brand-600"></i>
-                            Delivery Address
-                        </h3>
-                        <p class="text-slate-600 leading-relaxed"><?= nl2br(htmlspecialchars($order['address'])) ?></p>
+                <div class="col-12 col-lg-4">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold d-flex align-items-center">
+                                <i class="bi bi-geo-alt text-primary me-2"></i> Delivery Address
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 text-muted"><?= nl2br(htmlspecialchars($order['address'])) ?></p>
+                        </div>
                     </div>
 
                     <?php if (!empty($order['notes'])): ?>
-                    <div class="bg-white rounded-3xl soft-shadow border border-slate-100 p-6 md:p-8">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-5 h-5 text-brand-600"></i>
-                            Order Notes
-                        </h3>
-                        <p class="text-slate-600"><?= nl2br(htmlspecialchars($order['notes'])) ?></p>
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold d-flex align-items-center">
+                                <i class="bi bi-chat-left-text text-primary me-2"></i> Order Notes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 text-muted"><?= nl2br(htmlspecialchars($order['notes'])) ?></p>
+                        </div>
                     </div>
                     <?php endif; ?>
 
-                    <div class="bg-gradient-to-br from-brand-600 to-brand-900 rounded-3xl p-6 md:p-8 text-white">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <i data-lucide="headphones" class="w-5 h-5"></i>
-                            Need Help?
-                        </h3>
-                        <p class="text-sm text-white/80 mb-4">Have questions about your order? We're here to help.</p>
-                        <a href="tel:+9779800000000" class="flex items-center gap-2 text-sm font-bold hover:underline">
-                            <i data-lucide="phone" class="w-4 h-4"></i> +977 980-000-0000
-                        </a>
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">
+                                <i class="bi bi-headset me-2"></i> Need Help?
+                            </h5>
+                            <p class="mb-3 small opacity-75">Have questions about your order? We're here to help.</p>
+                            <a href="tel:+9779800000000" class="text-white text-decoration-none fw-semibold">
+                                <i class="bi bi-telephone me-1"></i> +977 980-000-0000
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -203,4 +216,4 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>

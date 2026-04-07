@@ -69,10 +69,8 @@ class SecureFileUpload {
     }
     
     private function getMimeType($filepath): string {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $filepath);
-        finfo_close($finfo);
-        return $mimeType;
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        return $finfo->file($filepath);
     }
     
     private function getExtension($mimeType): string {

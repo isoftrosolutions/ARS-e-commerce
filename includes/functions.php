@@ -45,7 +45,7 @@ function is_logged_in(): bool {
 }
 
 function is_admin(): bool {
-    return is_logged_in() && ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'customer');
+    return is_logged_in() && $_SESSION['role'] === 'admin';
 }
 
 function get_cart_count(): int {

@@ -5,7 +5,7 @@ const STATIC_ASSETS = [
     './shop.php',
     './cart.php',
     './manifest.json',
-    './assets/main.css',
+    './assets/app.css',
     './assets/icon-192.png',
     './assets/icon-512.png'
 ];

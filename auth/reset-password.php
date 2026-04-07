@@ -1,13 +1,12 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
-require_once __DIR__ . '/../includes/rate-limiter.php';
 
 if (is_logged_in()) {
     redirect('../index.php');
 }
 
 $token = $_GET['token'] ?? '';
-$error = null;
+?>
 $success = false;
 $userId = null;
 
@@ -98,208 +97,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId) {
 }
 
 $page_title = "Set New Password";
+require_once __DIR__ . '/../includes/header-bootstrap.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $page_title ?> | <?= SITE_NAME ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            500: '#f97316',
-                            600: '#ea580c',
-                            900: '#7c2d12',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased">
-    <div class="min-h-screen flex flex-col items-center justify-center p-6">
-        <a href="../index.php" class="flex items-center gap-2 mb-10 group">
-            <div class="w-12 h-12 bg-brand-600 text-white rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-xl shadow-brand-600/20">
-                <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="text-center mb-4">
+                <a href="../index.php" class="text-decoration-none d-inline-block mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-white border rounded-3 d-flex align-items-center justify-content-center overflow-hidden" style="width:48px;height:48px;">
+                            <img src="../assets/logo.jpeg" alt="ARS Shop Logo" style="width:100%;height:100%;object-fit:contain;padding:6px;">
+                        </div>
+                        <span class="fs-4 fw-bold text-dark">ARS<span class="text-primary">SHOP</span></span>
+                    </div>
+                </a>
             </div>
-            <span class="text-2xl font-black tracking-tighter text-slate-900">ARS<span class="text-brand-600">SHOP</span></span>
-        </a>
 
-        <div class="w-full max-w-md bg-white rounded-[2.5rem] soft-shadow border border-slate-100 p-8 md:p-12">
-            <?php if ($success): ?>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+            <div class="card shadow">
+                <?php if ($success): ?>
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                        </div>
+                        <h2 class="h4 fw-bold mb-3">Password Reset!</h2>
+                        <p class="text-muted mb-4">
+                            Your password has been successfully reset. You can now login with your new password.
+                        </p>
+                        <a href="login.php" class="btn btn-primary w-100 py-2 fw-bold">
+                            Login Now
+                        </a>
                     </div>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight mb-3">Password Reset!</h1>
-                    <p class="text-slate-500 font-medium mb-8">
-                        Your password has been successfully reset. You can now login with your new password.
-                    </p>
-                    <a href="login.php" class="inline-block w-full py-4 bg-brand-600 text-white rounded-2xl font-black text-center hover:bg-brand-500 transition-all">
-                        Login Now
-                    </a>
-                </div>
-            <?php elseif ($error): ?>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="x-circle" class="w-8 h-8 text-red-600"></i>
+                <?php elseif ($error): ?>
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                        </div>
+                        <h2 class="h4 fw-bold mb-3">Invalid Link</h2>
+                        <p class="text-muted mb-4">
+                            <?= htmlspecialchars($error) ?>
+                        </p>
+                        <a href="forgot-password.php" class="btn btn-dark w-100 py-2 fw-bold">
+                            Request New Link
+                        </a>
                     </div>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight mb-3">Invalid Link</h1>
-                    <p class="text-slate-500 font-medium mb-8">
-                        <?= htmlspecialchars($error) ?>
-                    </p>
-                    <a href="forgot-password.php" class="inline-block w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-center hover:bg-brand-600 transition-all">
-                        Request New Link
-                    </a>
-                </div>
-            <?php else: ?>
-                <div class="text-center mb-10">
-                    <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="lock" class="w-8 h-8 text-brand-600"></i>
-                    </div>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight mb-2">Set New Password</h1>
-                    <p class="text-slate-500 font-medium">Create a strong password for your account</p>
-                </div>
+                <?php else: ?>
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:64px;height:64px;">
+                                <i class="bi bi-lock-fill text-primary fs-4"></i>
+                            </div>
+                            <h2 class="h5 fw-bold mb-2">Set New Password</h2>
+                            <p class="text-muted small">Create a strong password for your account</p>
+                        </div>
 
-                <?php if(isset($fieldErrors['general'])): ?>
-                    <div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl mb-8 flex items-center gap-3 text-sm font-bold">
-                        <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                        <span><?= htmlspecialchars($fieldErrors['general']) ?></span>
+                        <?php if(isset($fieldErrors['general'])): ?>
+                            <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+                                <i class="bi bi-exclamation-circle"></i>
+                                <span><?= htmlspecialchars($fieldErrors['general']) ?></span>
+                            </div>
+                        <?php endif; ?>
+
+                        <form action="reset-password.php?token=<?= htmlspecialchars($token) ?>" method="POST">
+                            <?= csrf_field() ?>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label small fw-semibold text-muted">New Password</label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="password" required minlength="8" 
+                                           placeholder="Min 8 chars, 1 uppercase, 1 number" 
+                                           class="form-control <?= isset($fieldErrors['password']) ? 'is-invalid' : '' ?>">
+                                    <button type="button" id="togglePassword" class="btn btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="passwordStrength" class="mt-2 d-none">
+                                    <div class="progress" style="height:4px;">
+                                        <div id="strengthBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+                                    </div>
+                                    <small id="strengthText" class="text-muted"></small>
+                                </div>
+                                <?php if (isset($fieldErrors['password'])): ?>
+                                    <div class="invalid-feedback"><?= htmlspecialchars($fieldErrors['password']) ?></div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="confirm_password" class="form-label small fw-semibold text-muted">Confirm Password</label>
+                                <div class="input-group">
+                                    <input type="password" name="confirm_password" id="confirm_password" required minlength="8" 
+                                           placeholder="Repeat new password" 
+                                           class="form-control <?= isset($fieldErrors['confirm_password']) ? 'is-invalid' : '' ?>">
+                                    <button type="button" id="toggleConfirmPassword" class="btn btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <?php if (isset($fieldErrors['confirm_password'])): ?>
+                                    <div class="invalid-feedback"><?= htmlspecialchars($fieldErrors['confirm_password']) ?></div>
+                                <?php endif; ?>
+                            </div>
+
+                            <button type="submit" id="resetBtn" class="btn btn-dark w-100 py-2 fw-bold">
+                                Reset Password
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <a href="login.php" class="text-primary fw-semibold text-decoration-none small">
+                                Back to Login
+                            </a>
+                        </div>
                     </div>
                 <?php endif; ?>
-
-                <form action="reset-password.php?token=<?= htmlspecialchars($token) ?>" method="POST" class="space-y-6">
-                    <?= csrf_field() ?>
-                    
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">New Password</label>
-                        <div class="relative">
-                            <input type="password" name="password" id="password" required minlength="8" placeholder="Min 8 chars, 1 uppercase, 1 number" 
-                                   class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500/20 outline-none transition-all pr-12 <?= isset($fieldErrors['password']) ? 'ring-2 ring-red-300' : '' ?>">
-                            <button type="button" id="togglePassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-600 transition-colors">
-                                <i data-lucide="eye" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                        <div id="passwordStrength" class="mt-2 hidden">
-                            <div class="flex gap-1">
-                                <div id="strength1" class="h-1 flex-1 rounded-full bg-slate-200"></div>
-                                <div id="strength2" class="h-1 flex-1 rounded-full bg-slate-200"></div>
-                                <div id="strength3" class="h-1 flex-1 rounded-full bg-slate-200"></div>
-                                <div id="strength4" class="h-1 flex-1 rounded-full bg-slate-200"></div>
-                            </div>
-                            <p id="strengthText" class="text-xs mt-1 text-slate-400"></p>
-                        </div>
-                        <?php if (isset($fieldErrors['password'])): ?>
-                            <p class="text-red-500 text-xs mt-1"><?= htmlspecialchars($fieldErrors['password']) ?></p>
-                        <?php endif; ?>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Confirm Password</label>
-                        <div class="relative">
-                            <input type="password" name="confirm_password" id="confirm_password" required minlength="8" placeholder="Repeat new password" 
-                                   class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500/20 outline-none transition-all pr-12 <?= isset($fieldErrors['confirm_password']) ? 'ring-2 ring-red-300' : '' ?>">
-                            <button type="button" id="toggleConfirmPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-600 transition-colors">
-                                <i data-lucide="eye" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                        <?php if (isset($fieldErrors['confirm_password'])): ?>
-                            <p class="text-red-500 text-xs mt-1"><?= htmlspecialchars($fieldErrors['confirm_password']) ?></p>
-                        <?php endif; ?>
-                    </div>
-
-                    <button type="submit" id="resetBtn" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-brand-600 transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-200">
-                        Reset Password
-                    </button>
-                </form>
-            <?php endif; ?>
-
-            <div class="mt-10 pt-10 border-t border-slate-100 text-center">
-                <p class="text-sm text-slate-500 font-medium">
-                    <a href="login.php" class="text-brand-600 font-black hover:underline">Back to Login</a>
-                </p>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        lucide.createIcons();
-        
-        function setupPasswordToggle(toggleId, inputId) {
-            const toggle = document.getElementById(toggleId);
-            const input = document.getElementById(inputId);
-            
-            if (toggle && input) {
-                toggle.addEventListener('click', function() {
-                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                    input.setAttribute('type', type);
-                    const icon = this.querySelector('i');
-                    if (icon) {
-                        icon.setAttribute('data-lucide', type === 'password' ? 'eye' : 'eye-off');
-                        lucide.createIcons();
-                    }
-                });
-            }
-        }
-        
-        setupPasswordToggle('togglePassword', 'password');
-        setupPasswordToggle('toggleConfirmPassword', 'confirm_password');
-        
-        const passwordInput = document.getElementById('password');
-        const strengthDiv = document.getElementById('passwordStrength');
-        const strengthBars = [
-            document.getElementById('strength1'),
-            document.getElementById('strength2'),
-            document.getElementById('strength3'),
-            document.getElementById('strength4')
-        ];
-        const strengthText = document.getElementById('strengthText');
-        
-        function updateStrength(password) {
-            if (!password) {
-                strengthDiv.classList.add('hidden');
-                return;
-            }
-            strengthDiv.classList.remove('hidden');
-            
-            let score = 0;
-            if (password.length >= 8) score++;
-            if (/[A-Z]/.test(password)) score++;
-            if (/[a-z]/.test(password)) score++;
-            if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) score++;
-            
-            const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
-            const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-            
-            strengthBars.forEach((bar, i) => {
-                bar.className = 'h-1 flex-1 rounded-full ' + (i < score ? colors[score - 1] : 'bg-slate-200');
-            });
-            
-            strengthText.textContent = password.length > 0 ? labels[score - 1] || 'Too short' : '';
-        }
-        
-        passwordInput?.addEventListener('input', (e) => updateStrength(e.target.value));
-        
-        document.getElementById('resetBtn')?.addEventListener('click', function() {
-            if (!this.disabled) {
-                this.disabled = true;
-                this.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Resetting...</span>';
-                this.closest('form')?.submit();
+<script>
+function setupPasswordToggle(toggleId, inputId) {
+    const toggle = document.getElementById(toggleId);
+    const input = document.getElementById(inputId);
+    
+    if (toggle && input) {
+        toggle.addEventListener('click', function() {
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             }
         });
-    </script>
-</body>
-</html>
+    }
+}
+
+setupPasswordToggle('togglePassword', 'password');
+setupPasswordToggle('toggleConfirmPassword', 'confirm_password');
+
+const passwordInput = document.getElementById('password');
+const strengthDiv = document.getElementById('passwordStrength');
+const strengthBar = document.getElementById('strengthBar');
+const strengthText = document.getElementById('strengthText');
+
+function updateStrength(password) {
+    if (!password) {
+        strengthDiv.classList.add('d-none');
+        return;
+    }
+    strengthDiv.classList.remove('d-none');
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) score++;
+    
+    const widths = ['25%', '50%', '75%', '100%'];
+    const colors = ['bg-danger', 'bg-warning', 'bg-info', 'bg-success'];
+    const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+    
+    strengthBar.style.width = widths[score - 1] || '0%';
+    strengthBar.className = 'progress-bar ' + (colors[score - 1] || 'bg-secondary');
+    strengthText.textContent = labels[score - 1] || 'Too short';
+}
+
+passwordInput?.addEventListener('input', (e) => updateStrength(e.target.value));
+
+document.getElementById('resetBtn')?.addEventListener('click', function(e) {
+    if (!this.disabled) {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Resetting...';
+        this.closest('form')?.submit();
+    }
+});
+</script>
+
+<?php require_once __DIR__ . '/../includes/footer-bootstrap.php'; ?>

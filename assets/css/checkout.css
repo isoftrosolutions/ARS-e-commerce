@@ -1,0 +1,58 @@
+/* Checkout Page Styles */
+
+.checkout-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--soft-shadow);
+    margin-bottom: 2rem;
+}
+
+.form-label-custom {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--slate-700);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-input-custom {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--slate-200);
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.form-input-custom:focus {
+    border-color: var(--brand-600);
+    box-shadow: 0 0 0 4px var(--brand-50);
+    outline: none;
+}
+
+.payment-option {
+    border: 2px solid var(--slate-100);
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.payment-option:hover {
+    border-color: var(--brand-200);
+    background-color: var(--brand-50);
+}
+
+.payment-option.selected {
+    border-color: var(--brand-600);
+    background-color: var(--brand-50);
+}
+
+.checkout-sidebar {
+    position: sticky;
+    top: 6rem;
+}

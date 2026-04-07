@@ -2,8 +2,8 @@
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/coupon.php';
 
-$page_title = "My Shopping Bag";
-require_once __DIR__ . '/includes/header.php';
+$page_title = "Shopping Cart";
+require_once __DIR__ . '/includes/header-bootstrap.php';
 
 $cart = $_SESSION['cart'] ?? [];
 $subtotal = 0;
@@ -33,160 +33,200 @@ $coupon_success = $_SESSION['coupon_success'] ?? null;
 unset($_SESSION['coupon_error'], $_SESSION['coupon_success']);
 ?>
 
-<div class="container mx-auto px-4 md:px-6 py-12">
-    <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">
-        <a href="index.php" class="hover:text-brand-600 transition-colors">Home</a>
-        <i data-lucide="chevron-right" class="w-3 h-3"></i>
-        <span class="text-slate-900">Shopping Bag</span>
+<!-- Breadcrumb -->
+<section class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+            </ol>
+        </nav>
     </div>
+</section>
 
-    <div class="flex flex-col lg:flex-row gap-12">
-        <div class="flex-grow">
-            <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">Shopping Bag</h1>
-                <span class="text-sm font-bold text-slate-400"><?= count($cart) ?> items</span>
-            </div>
-
-            <?php if (empty($cart)): ?>
-                <div class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-                    <div class="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="shopping-bag" class="w-10 h-10"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-2">Your bag is empty</h3>
-                    <p class="text-slate-500 mb-8 max-w-sm mx-auto">Looks like you haven't found anything yet. Explore our latest arrivals!</p>
-                    <a href="shop.php" class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl">Start Shopping</a>
+<!-- Cart Content -->
+<section class="py-4 py-md-5">
+    <div class="container">
+        
+        <?php if (empty($cart)): ?>
+            <!-- Empty Cart -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-cart-x display-1 text-muted opacity-25"></i>
                 </div>
-            <?php else: ?>
-                <?php if($subtotal < FREE_SHIPPING_THRESHOLD): ?>
-                    <div class="bg-blue-50 border border-blue-100 p-6 rounded-3xl mb-8">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs font-bold text-blue-800 uppercase tracking-wide">Almost there!</p>
-                            <p class="text-xs font-bold text-blue-800">Add <?= formatPrice(FREE_SHIPPING_THRESHOLD - $subtotal) ?> more for FREE shipping</p>
-                        </div>
-                        <div class="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-600 transition-all duration-500" style="width: <?= min(100, ($subtotal / FREE_SHIPPING_THRESHOLD) * 100) ?>%"></div>
-                        </div>
+                <h3 class="fw-bold text-dark mb-2">Your cart is empty</h3>
+                <p class="text-muted mb-4">Looks like you haven't added anything yet.</p>
+                <a href="shop.php" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-bag me-2"></i>Start Shopping
+                </a>
+            </div>
+        <?php else: ?>
+        
+            <div class="row g-4">
+                <!-- Cart Items -->
+                <div class="col-lg-8">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h4 fw-bold mb-0">Shopping Cart (<?= count($cart) ?> items)</h2>
                     </div>
-                <?php else: ?>
-                    <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-3xl mb-8 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i data-lucide="check" class="w-5 h-5"></i>
-                        </div>
-                        <p class="text-sm font-bold text-emerald-800 tracking-tight">FREE Delivery unlocked!</p>
-                    </div>
-                <?php endif; ?>
-
-                <div class="space-y-6">
-                    <?php foreach ($cart as $id => $item): ?>
-                    <div class="bg-white p-6 md:p-8 rounded-[2rem] soft-shadow border border-slate-100 flex flex-col md:flex-row items-center gap-8 relative group">
-                        <div class="w-32 h-32 bg-slate-50 rounded-2xl border border-slate-100 p-4 flex-shrink-0">
-                            <img src="<?= !empty($item['image']) ? UPLOAD_DIR . htmlspecialchars($item['image']) : 'https://via.placeholder.com/150' ?>" 
-                                 class="w-full h-full object-contain" alt="<?= htmlspecialchars($item['name']) ?>">
-                        </div>
-                        
-                        <div class="flex-grow text-center md:text-left">
-                            <h3 class="text-lg font-bold text-slate-900 mb-1"><?= htmlspecialchars($item['name']) ?></h3>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Unit Price: <?= formatPrice($item['price']) ?></p>
-                            
-                            <div class="flex items-center justify-center md:justify-start gap-4">
-                                <div class="flex items-center bg-slate-100 rounded-xl p-1">
-                                    <a href="cart-action.php?action=update&id=<?= (int)$id ?>&qty=<?= max(1, $item['qty'] - 1) ?>" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-brand-600 transition-colors">
-                                        <i data-lucide="minus" class="w-4 h-4"></i>
-                                    </a>
-                                    <span class="w-10 text-center text-sm font-black text-slate-900"><?= (int)$item['qty'] ?></span>
-                                    <a href="cart-action.php?action=update&id=<?= (int)$id ?>&qty=<?= $item['qty'] + 1 ?>" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-brand-600 transition-colors">
-                                        <i data-lucide="plus" class="w-4 h-4"></i>
-                                    </a>
-                                </div>
-                                <a href="cart-action.php?action=remove&id=<?= (int)$id ?>" class="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors">Remove</a>
+                    
+                    <!-- Free Shipping Progress -->
+                    <?php if($subtotal < FREE_SHIPPING_THRESHOLD): ?>
+                        <div class="alert alert-info d-flex align-items-center rounded-3 mb-4" role="alert">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <div>
+                                Add <strong><?= formatPrice(FREE_SHIPPING_THRESHOLD - $subtotal) ?></strong> more for FREE shipping!
                             </div>
                         </div>
-
-                        <div class="text-center md:text-right">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
-                            <p class="text-xl font-black text-slate-900"><?= formatPrice($item['price'] * $item['qty']) ?></p>
+                    <?php else: ?>
+                        <div class="alert alert-success d-flex align-items-center rounded-3 mb-4" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <div>You've unlocked <strong>FREE shipping</strong>!</div>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Cart Items List -->
+                    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                        <div class="card-body p-0">
+                            <?php foreach ($cart as $id => $item): ?>
+                                <div class="cart-item p-3 p-md-4 <?= $id !== array_key_last($cart) ? 'border-bottom' : '' ?>">
+                                    <div class="row g-3 align-items-center">
+                                        <!-- Product Image -->
+                                        <div class="col-3 col-md-2">
+                                            <img src="<?= !empty($item['image']) ? UPLOAD_DIR . htmlspecialchars($item['image']) : 'https://via.placeholder.com/150' ?>" 
+                                                 class="img-fluid rounded-2 bg-light p-2" 
+                                                 alt="<?= htmlspecialchars($item['name']) ?>"
+                                                 style="object-fit: contain; height: 80px;">
+                                        </div>
+                                        
+                                        <!-- Product Info -->
+                                        <div class="col-9 col-md-4">
+                                            <h5 class="fw-bold mb-1"><?= htmlspecialchars($item['name']) ?></h5>
+                                            <p class="text-muted small mb-2"><?= formatPrice($item['price']) ?> each</p>
+                                            
+                                            <!-- Quantity Controls -->
+                                            <div class="d-flex align-items-center gap-2">
+                                                <a href="cart-action.php?action=update&id=<?= (int)$id ?>&qty=<?= max(1, $item['qty'] - 1) ?>" 
+                                                   class="btn btn-outline-secondary btn-sm rounded-2">
+                                                    <i class="bi bi-dash"></i>
+                                                </a>
+                                                <span class="fw-bold px-3"><?= (int)$item['qty'] ?></span>
+                                                <a href="cart-action.php?action=update&id=<?= (int)$id ?>&qty=<?= $item['qty'] + 1 ?>" 
+                                                   class="btn btn-outline-secondary btn-sm rounded-2">
+                                                    <i class="bi bi-plus"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Price -->
+                                        <div class="col-6 col-md-3 text-md-center mt-3 mt-md-0">
+                                            <p class="text-muted small mb-1 d-none d-md-block">Total</p>
+                                            <h5 class="fw-bold text-dark mb-0"><?= formatPrice($item['price'] * $item['qty']) ?></h5>
+                                        </div>
+                                        
+                                        <!-- Remove -->
+                                        <div class="col-6 col-md-3 text-md-end mt-3 mt-md-0">
+                                            <a href="cart-action.php?action=remove&id=<?= (int)$id ?>" 
+                                               class="btn btn-outline-danger btn-sm rounded-2">
+                                                <i class="bi bi-trash me-1 d-none d-md-inline"></i>Remove
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    
+                    <div class="mt-4">
+                        <a href="shop.php" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                        </a>
+                    </div>
                 </div>
-            <?php endif; ?>
-        </div>
-
-        <?php if (!empty($cart)): ?>
-        <div class="w-full lg:w-96 flex-shrink-0">
-            <div class="bg-white rounded-[2.5rem] p-8 md:p-10 soft-shadow border border-slate-100 sticky top-28">
-                <h3 class="text-xl font-black text-slate-900 mb-8 tracking-tight">Order Summary</h3>
-
-                <?php if ($coupon_error): ?>
-                <div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm font-bold">
-                    <?= htmlspecialchars($coupon_error) ?>
-                </div>
-                <?php endif; ?>
                 
-                <?php if ($coupon_success): ?>
-                <div class="bg-green-50 border border-green-100 text-green-600 px-4 py-3 rounded-xl mb-6 text-sm font-bold">
-                    <?= htmlspecialchars($coupon_success) ?>
-                </div>
-                <?php endif; ?>
-
-                <div class="space-y-4 mb-8 pb-8 border-b border-slate-100">
-                    <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-400">Subtotal</span>
-                        <span class="text-slate-900"><?= formatPrice($subtotal) ?></span>
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 100px;">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">Order Summary</h4>
+                            
+                            <?php if($coupon_error): ?>
+                                <div class="alert alert-danger py-2 rounded-2" role="alert">
+                                    <?= htmlspecialchars($coupon_error) ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if($coupon_success): ?>
+                                <div class="alert alert-success py-2 rounded-2" role="alert">
+                                    <?= htmlspecialchars($coupon_success) ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <!-- Summary Rows -->
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span class="fw-semibold"><?= formatPrice($subtotal) ?></span>
+                            </div>
+                            
+                            <?php if($coupon_discount > 0): ?>
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span>Coupon (<?= htmlspecialchars($applied_coupon['code']) ?>)</span>
+                                    <span class="fw-semibold">-<?= formatPrice($coupon_discount) ?></span>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Shipping</span>
+                                <span class="fw-semibold <?= $shipping_fee == 0 ? 'text-success' : '' ?>">
+                                    <?= $shipping_fee == 0 ? 'FREE' : formatPrice($shipping_fee) ?>
+                                </span>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="h5 fw-bold">Total</span>
+                                <span class="h5 fw-bold text-primary"><?= formatPrice($grand_total) ?></span>
+                            </div>
+                            
+                            <!-- Coupon -->
+                            <form action="cart-action.php" method="POST" class="mb-4">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="apply_coupon">
+                                <label class="form-label small fw-semibold">Have a coupon?</label>
+                                <div class="input-group">
+                                    <input type="text" name="coupon_code" placeholder="Enter code" 
+                                           value="<?= htmlspecialchars($_SESSION['coupon']['code'] ?? '') ?>"
+                                           class="form-control text-uppercase">
+                                    <button type="submit" class="btn btn-dark">Apply</button>
+                                </div>
+                                <?php if($applied_coupon): ?>
+                                    <a href="cart-action.php?action=remove_coupon" class="small text-danger">Remove coupon</a>
+                                <?php endif; ?>
+                            </form>
+                            
+                            <!-- Checkout Button -->
+                            <a href="checkout.php" class="btn btn-primary btn-lg w-100 mb-3">
+                                <i class="bi bi-lock me-2"></i>Proceed to Checkout
+                            </a>
+                            
+                            <!-- Payment Methods -->
+                            <div class="text-center">
+                                <small class="text-muted d-block mb-2">We accept:</small>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <span class="badge bg-light text-dark">eSewa</span>
+                                    <span class="badge bg-light text-danger">FonePay</span>
+                                    <span class="badge bg-light text-primary">VISA</span>
+                                    <span class="badge bg-light text-success">COD</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <?php if ($coupon_discount > 0): ?>
-                    <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-400">Coupon (<?= htmlspecialchars($applied_coupon['code']) ?>)</span>
-                        <span class="text-emerald-600">-<?= formatPrice($coupon_discount) ?></span>
-                    </div>
-                    <?php endif; ?>
-                    <div class="flex justify-between items-center text-sm font-bold">
-                        <span class="text-slate-400">Shipping</span>
-                        <span class="<?= $shipping_fee == 0 ? 'text-emerald-600' : 'text-slate-900' ?>">
-                            <?= $shipping_fee == 0 ? 'FREE' : formatPrice($shipping_fee) ?>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="mb-8">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Promo Code</label>
-                    <form action="cart-action.php" method="POST" class="flex gap-2">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="apply_coupon">
-                        <input type="text" name="coupon_code" placeholder="Enter code" value="<?= htmlspecialchars($_SESSION['coupon']['code'] ?? '') ?>"
-                               class="flex-grow px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500/20 outline-none uppercase">
-                        <button type="submit" class="px-4 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-brand-600 transition-all uppercase tracking-widest">
-                            Apply
-                        </button>
-                    </form>
-                    <?php if ($applied_coupon): ?>
-                    <a href="cart-action.php?action=remove_coupon" class="block text-center text-xs text-red-500 hover:underline mt-2">
-                        Remove coupon
-                    </a>
-                    <?php endif; ?>
-                </div>
-
-                <div class="flex justify-between items-center mb-10">
-                    <span class="text-lg font-black text-slate-900">Total</span>
-                    <span class="text-2xl font-black text-brand-600"><?= formatPrice($grand_total) ?></span>
-                </div>
-
-                <a href="checkout.php" class="block w-full py-5 bg-slate-900 text-white text-center rounded-2xl font-black text-lg hover:bg-brand-600 transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-200 mb-6">
-                    Checkout Now
-                </a>
-
-                <div class="flex flex-col gap-4">
-                    <div class="flex items-center gap-3 grayscale opacity-50 justify-center">
-                        <div class="bg-white px-2 py-1 rounded text-[8px] font-black text-blue-900 border">eSewa</div>
-                        <div class="bg-white px-2 py-1 rounded text-[8px] font-black text-red-600 border">FonePay</div>
-                        <div class="bg-white px-2 py-1 rounded text-[8px] font-black text-blue-600 border">VISA</div>
-                    </div>
-                    <p class="text-[10px] text-center text-slate-400 font-medium leading-relaxed italic">By clicking Checkout, you agree to our 7-Day Easy Return Policy.</p>
                 </div>
             </div>
-        </div>
+            
         <?php endif; ?>
     </div>
-</div>
+</section>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer-bootstrap.php'; ?>
