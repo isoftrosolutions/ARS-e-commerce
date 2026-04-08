@@ -93,6 +93,27 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                 </div>
             </div>
 
+            <!-- Order Tracking Status -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill text-primary me-2"></i> Current Status & Location
+                    </h5>
+                </div>
+                <div class="card-body bg-light rounded-bottom p-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="tracking-icon-pulse flex-shrink-0">
+                            <i class="bi bi-geo-fill text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Product Location:</h6>
+                            <p class="h5 text-primary fw-bold mb-2"><?= htmlspecialchars($order['current_location'] ?: 'Processing your order...') ?></p>
+                            <p class="text-muted small mb-0">Last updated: <?= $order['location_updated_at'] ? date('M d, Y \a\t g:i A', strtotime($order['location_updated_at'])) : date('M d, Y \a\t g:i A', strtotime($order['created_at'])) ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-4">
                 <div class="col-12 col-lg-8">
                     <div class="card shadow-sm mb-4">

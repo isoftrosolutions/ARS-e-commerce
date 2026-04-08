@@ -9,18 +9,17 @@
 class AdminSidebar {
   constructor() {
     this.sidebar   = document.querySelector('.admin-sidebar');
-    this.toggleBtn = document.getElementById('sidebar-toggle');
     this.hamburger = document.getElementById('topbar-hamburger');
     this.overlay   = document.getElementById('sidebar-overlay');
-    this.isCollapsed = localStorage.getItem('ars_sidebar') === '1';
     this.isMobile  = window.innerWidth <= 768;
     this.init();
   }
 
   init() {
     if (!this.sidebar) return;
-    if (!this.isMobile && this.isCollapsed) this.sidebar.classList.add('collapsed');
-    this.toggleBtn?.addEventListener('click', () => this.toggle());
+    // Sidebar is always expanded on desktop — clear any stored collapsed state
+    this.sidebar.classList.remove('collapsed');
+    localStorage.removeItem('ars_sidebar');
     this.hamburger?.addEventListener('click', () => this.mobileOpen());
     this.overlay?.addEventListener('click',  () => this.mobileClose());
     window.addEventListener('resize', () => {
@@ -28,12 +27,6 @@ class AdminSidebar {
       if (!this.isMobile) { this.sidebar.classList.remove('mobile-open'); this.overlay?.classList.remove('show'); document.body.style.overflow = ''; }
     });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.mobileClose(); });
-  }
-
-  toggle() {
-    this.isCollapsed = !this.isCollapsed;
-    this.sidebar.classList.toggle('collapsed', this.isCollapsed);
-    localStorage.setItem('ars_sidebar', this.isCollapsed ? '1' : '0');
   }
 
   mobileOpen()  { this.sidebar.classList.add('mobile-open'); this.overlay?.classList.add('show'); document.body.style.overflow = 'hidden'; }
@@ -463,10 +456,82 @@ function initFlashMessages() {
 }
 
 /* ----------------------------------------------------------
+   12. THEME MANAGER
+   ---------------------------------------------------------- */
+class ThemeManager {
+  constructor() {
+    this.KEY  = 'ars_theme';
+    this.html = document.documentElement;
+    this.btn  = document.getElementById('theme-toggle');
+    // Read from localStorage (already applied in <head> for FOUC prevention)
+    this.theme = localStorage.getItem(this.KEY) || 'dark';
+    this._syncAttr();
+    this._updateBtn();
+    this.btn?.addEventListener('click', () => this.toggle());
+  }
+
+  toggle() {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(this.KEY, this.theme);
+    this._syncAttr();
+    this._updateBtn();
+    // Notify charts and any other listeners
+    document.dispatchEvent(new CustomEvent('ars:themechange', { detail: { theme: this.theme } }));
+    Toast.info(this.theme === 'light' ? 'Light mode enabled' : 'Dark mode enabled', 'Theme');
+  }
+
+  _syncAttr() {
+    if (this.theme === 'light') {
+      this.html.setAttribute('data-theme', 'light');
+    } else {
+      this.html.removeAttribute('data-theme');
+    }
+  }
+
+  _updateBtn() {
+    if (!this.btn) return;
+    const label = this.theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+    this.btn.title = label;
+    this.btn.setAttribute('aria-label', label);
+  }
+
+  /**
+   * Read a CSS custom property. Tries body first (overrides live on body.admin),
+   * falls back to documentElement (:root defaults).
+   */
+  static getCSSVar(name) {
+    var fromBody = getComputedStyle(document.body).getPropertyValue(name).trim();
+    if (fromBody) return fromBody;
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  /** Return a plain object of chart-ready colors keyed to semantic names. */
+  static chartColors() {
+    const v = ThemeManager.getCSSVar.bind(ThemeManager);
+    return {
+      line:           v('--chart-line'),
+      line2:          v('--chart-line-2'),
+      fillStart:      v('--chart-fill-0'),
+      fillEnd:        v('--chart-fill-1'),
+      grid:           v('--chart-grid'),
+      tick:           v('--chart-tick'),
+      pointBg:        v('--chart-point-bg'),
+      tooltipBg:      v('--chart-tooltip-bg'),
+      tooltipTitle:   v('--chart-tooltip-title'),
+      tooltipBody:    v('--chart-tooltip-body'),
+      tooltipBorder:  v('--chart-tooltip-border'),
+    };
+  }
+}
+
+window.ThemeManager = ThemeManager;
+
+/* ----------------------------------------------------------
    INIT on DOMContentLoaded
    ---------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', function() {
   new AdminSidebar();
+  new ThemeManager();
   initUserDropdown();
   initSearchShortcut();
   initFlashMessages();

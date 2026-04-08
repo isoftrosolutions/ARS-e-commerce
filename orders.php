@@ -117,6 +117,13 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                                                     • <?= $order['payment_method'] ?> 
                                                     • <?= formatPrice($order['total_amount']) ?>
                                                 </p>
+                                                <?php if(!empty($order['current_location'])): ?>
+                                                    <div class="mt-2 text-primary small d-flex align-items-center">
+                                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                                        <strong>Location:</strong> <span class="ms-1"><?= htmlspecialchars($order['current_location']) ?></span>
+                                                        <span class="ms-2 text-muted" style="font-size: 10px;">(<?= $order['location_updated_at'] ? date('M d, g:i A', strtotime($order['location_updated_at'])) : date('M d, g:i A', strtotime($order['created_at'])) ?>)</span>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="col-auto">
                                                 <a href="order-details.php?id=<?= $order['id'] ?>" class="btn btn-outline-primary">

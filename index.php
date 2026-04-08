@@ -156,7 +156,7 @@ try {
                                 <i class="bi bi-heart"></i>
                             </span>
                             <a href="product.php?slug=<?= $p['slug'] ?>">
-                                <img src="<?= $p['image'] ? UPLOAD_DIR . $p['image'] : 'https://via.placeholder.com/400x400?text=' . urlencode($p['name']) ?>" 
+                                <img src="<?= getProductImage($p['image']) ?>" 
                                      class="card-img-top p-3 p-md-4" 
                                      alt="<?= $p['name'] ?>" 
                                      loading="lazy"

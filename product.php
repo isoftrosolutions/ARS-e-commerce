@@ -59,7 +59,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                 <!-- Main Image -->
                 <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
                     <div class="ratio ratio-1x1 bg-light">
-                        <img id="mainImage" src="<?= $product['image'] ? UPLOAD_DIR . $product['image'] : 'https://via.placeholder.com/800x800' ?>" 
+                        <img id="mainImage" src="<?= getProductImage($product['image']) ?>" 
                              class="img-fluid p-4 p-lg-5" alt="<?= htmlspecialchars($product['name']) ?>" 
                              style="object-fit: contain;">
                     </div>
@@ -68,8 +68,8 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                 <!-- Thumbnails -->
                 <?php if(!empty($gallery)): ?>
                     <div class="d-flex gap-2 overflow-auto pb-2">
-                        <button onclick="changeImage('<?= UPLOAD_DIR . $product['image'] ?>')" class="btn btn-outline-primary p-2 rounded-2 flex-shrink-0 active">
-                            <img src="<?= UPLOAD_DIR . $product['image'] ?>" alt="Main" style="width: 60px; height: 60px; object-fit: contain;">
+                        <button onclick="changeImage('<?= getProductImage($product['image']) ?>')" class="btn btn-outline-primary p-2 rounded-2 flex-shrink-0 active">
+                            <img src="<?= getProductImage($product['image']) ?>" alt="Main" style="width: 60px; height: 60px; object-fit: contain;">
                         </button>
                         <?php foreach($gallery as $img): ?>
                             <button onclick="changeImage('<?= UPLOAD_DIR . $img['image_path'] ?>')" class="btn btn-outline-secondary p-2 rounded-2 flex-shrink-0">

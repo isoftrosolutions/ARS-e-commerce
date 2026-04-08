@@ -8,6 +8,21 @@ function formatPrice($price) {
     return CURRENCY . number_format((float)$price, 0);
 }
 
+/**
+ * Safely resolves product image path to avoid double-prefixing
+ */
+function getProductImage($path) {
+    if (empty($path)) return 'https://via.placeholder.com/400x400?text=No+Image';
+    
+    // If it already contains 'uploads/', strip it to avoid double prefixing
+    // especially for older session data or manual entries
+    if (strpos($path, 'uploads/') === 0) {
+        $path = substr($path, 8);
+    }
+    
+    return UPLOAD_DIR . $path;
+}
+
 function redirect($url, $message = '', $type = 'success') {
     if ($message) {
         $_SESSION['msg'] = $message;

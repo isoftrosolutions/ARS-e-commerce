@@ -15,8 +15,8 @@ if ($action === 'delete') {
     $stmt->execute([$id]);
     $img = $stmt->fetchColumn();
     
-    if ($img && file_exists(__DIR__ . '/../' . $img)) {
-        unlink(__DIR__ . '/../' . $img);
+    if ($img && file_exists(__DIR__ . '/../uploads/' . $img)) {
+        unlink(__DIR__ . '/../uploads/' . $img);
     }
     
     $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
@@ -48,13 +48,13 @@ if ($action === 'create' || $action === 'update') {
         
         if (in_array($ext, $allowed)) {
             $new_name = uniqid('prod_') . '.' . $ext;
-            $dest = 'uploads/products/' . $new_name;
+            $dest = 'products/' . $new_name;
             
             if (!is_dir(__DIR__ . '/../uploads/products/')) {
                 mkdir(__DIR__ . '/../uploads/products/', 0777, true);
             }
             
-            if (move_uploaded_file($_FILES['image']['tmp_name'], __DIR__ . '/../' . $dest)) {
+            if (move_uploaded_file($_FILES['image']['tmp_name'], __DIR__ . '/../uploads/' . $dest)) {
                 $image_path = $dest;
                 
                 // If update, delete old image
@@ -62,8 +62,8 @@ if ($action === 'create' || $action === 'update') {
                     $stmt = $pdo->prepare("SELECT image FROM products WHERE id = ?");
                     $stmt->execute([$id]);
                     $old_img = $stmt->fetchColumn();
-                    if ($old_img && file_exists(__DIR__ . '/../' . $old_img)) {
-                        unlink(__DIR__ . '/../' . $old_img);
+                    if ($old_img && file_exists(__DIR__ . '/../uploads/' . $old_img)) {
+                        unlink(__DIR__ . '/../uploads/' . $old_img);
                     }
                 }
             }
@@ -90,8 +90,8 @@ if ($action === 'create' || $action === 'update') {
              $stmt = $pdo->prepare("SELECT image FROM products WHERE id = ?");
              $stmt->execute([$id]);
              $old_img = $stmt->fetchColumn();
-             if ($old_img && file_exists(__DIR__ . '/../' . $old_img)) {
-                 unlink(__DIR__ . '/../' . $old_img);
+             if ($old_img && file_exists(__DIR__ . '/../uploads/' . $old_img)) {
+                 unlink(__DIR__ . '/../uploads/' . $old_img);
              }
              $sql .= ", image = NULL";
         }

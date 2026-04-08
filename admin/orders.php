@@ -132,7 +132,7 @@ admin_header('Orders', 'orders');
                             <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-ghost btn-sm btn-icon" title="View Details">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </a>
-                            <button class="btn btn-ghost btn-sm btn-icon" onclick="openStatusModal(<?php echo $order['id']; ?>, '<?php echo $order['delivery_status']; ?>', '<?php echo $order['payment_status']; ?>')" title="Update Status">
+                            <button class="btn btn-ghost btn-sm btn-icon" onclick="openStatusModal(<?php echo $order['id']; ?>, '<?php echo $order['delivery_status']; ?>', '<?php echo $order['payment_status']; ?>', '<?php echo addslashes($order['current_location'] ?? ''); ?>')" title="Update Status">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
                             </button>
                         </div>
@@ -194,13 +194,9 @@ admin_header('Orders', 'orders');
                     </select>
                 </div>
 
-                <div class="form-group" style="margin-bottom:0;">
-                    <label class="form-label">Payment Status</label>
-                    <select name="payment_status" id="modalPaymentStatus" class="form-select">
-                        <option value="Pending">Pending</option>
-                        <option value="Paid">Paid</option>
-                        <option value="Failed">Failed</option>
-                    </select>
+                <div class="form-group" style="margin-top:20px;margin-bottom:0;">
+                    <label class="form-label">Current Product Location</label>
+                    <input type="text" name="current_location" id="modalCurrentLocation" class="form-input" placeholder="e.g. Kathmandu Hub, Out for Delivery">
                 </div>
             </div>
             <div class="modal-footer">
@@ -212,10 +208,11 @@ admin_header('Orders', 'orders');
 </div>
 
 <script>
-function openStatusModal(id, deliveryStatus, paymentStatus) {
+function openStatusModal(id, deliveryStatus, paymentStatus, location) {
     document.getElementById('modalOrderId').value = id;
     document.getElementById('modalDeliveryStatus').value = deliveryStatus;
     document.getElementById('modalPaymentStatus').value = paymentStatus;
+    document.getElementById('modalCurrentLocation').value = location || '';
     openModal('statusModal');
 }
 </script>

@@ -107,7 +107,7 @@ admin_header('Products', 'products');
                 <tr>
                     <td>
                         <?php if ($product['image']): ?>
-                        <img src="<?php echo SITE_URL . '/' . $product['image']; ?>" alt=""
+                        <img src="<?php echo SITE_URL . '/uploads/' . $product['image']; ?>" alt=""
                             class="product-thumb">
                         <?php else: ?>
                         <div class="product-thumb" style="display:flex;align-items:center;justify-content:center;">

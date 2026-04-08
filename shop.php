@@ -211,7 +211,7 @@ if ($category_id > 0) {
                                         <i class="bi bi-heart<?= $has_wishlist ? '-fill' : '' ?>"></i>
                                     </a>
                                     <a href="product.php?slug=<?= htmlspecialchars($p['slug']) ?>">
-                                        <img src="<?= !empty($p['image']) ? UPLOAD_DIR . htmlspecialchars($p['image']) : 'https://via.placeholder.com/400x400?text=' . urlencode($p['name']) ?>" 
+                                        <img src="<?= getProductImage($p['image']) ?>" 
                                              class="card-img-top p-4" 
                                              alt="<?= htmlspecialchars($p['name']) ?>" 
                                              loading="lazy"

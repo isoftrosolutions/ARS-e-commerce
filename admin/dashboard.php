@@ -34,8 +34,8 @@ try {
     die('Dashboard error: ' . htmlspecialchars($e->getMessage()));
 }
 
-$page_title = 'Dashboard';
-include 'includes/header.php';
+require_once __DIR__ . '/layout-parts.php';
+admin_header('Dashboard', 'dashboard');
 ?>
 
 <div class="page-header animate-fade-up">
@@ -264,78 +264,94 @@ include 'includes/header.php';
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var ctx = document.getElementById('revenueChart');
-  if (!ctx || typeof Chart === 'undefined') return;
+(function() {
+  var _chart = null;
+  var labels  = <?= json_encode($chart_labels) ?>;
+  var data    = <?= json_encode($chart_data) ?>;
 
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: <?= json_encode($chart_labels) ?>,
-      datasets: [{
-        label: 'Revenue',
-        data: <?= json_encode($chart_data) ?>,
-        borderColor: '#00D4FF',
-        backgroundColor: function(context) {
-          var chart = context.chart;
-          var ctx2 = chart.ctx;
-          var area = chart.chartArea;
-          if (!area) return 'transparent';
-          var g = ctx2.createLinearGradient(0, area.top, 0, area.bottom);
-          g.addColorStop(0, 'rgba(0,212,255,0.16)');
-          g.addColorStop(1, 'rgba(0,212,255,0.01)');
-          return g;
+  function build() {
+    var canvas = document.getElementById('revenueChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (_chart) { _chart.destroy(); _chart = null; }
+
+    var c = (typeof ThemeManager !== 'undefined') ? ThemeManager.chartColors() : {};
+    var line        = c.line        || '#00D4FF';
+    var fillStart   = c.fillStart   || 'rgba(0,212,255,0.15)';
+    var fillEnd     = c.fillEnd     || 'rgba(0,212,255,0.01)';
+    var grid        = c.grid        || 'rgba(255,255,255,0.05)';
+    var tick        = c.tick        || '#4E5569';
+    var pointBg     = c.pointBg     || '#0F1117';
+    var tipBg       = c.tooltipBg   || '#242836';
+    var tipTitle    = c.tooltipTitle|| 'rgba(255,255,255,0.87)';
+    var tipBody     = c.tooltipBody || '#8B92A5';
+    var tipBorder   = c.tooltipBorder || 'rgba(0,212,255,0.22)';
+
+    _chart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Revenue',
+          data: data,
+          borderColor: line,
+          backgroundColor: function(ctx2) {
+            var ch = ctx2.chart, area = ch.chartArea;
+            if (!area) return 'transparent';
+            var g = ch.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+            g.addColorStop(0, fillStart);
+            g.addColorStop(1, fillEnd);
+            return g;
+          },
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2,
+          pointBackgroundColor: pointBg,
+          pointBorderColor: line,
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: tipBg,
+            titleColor: tipTitle,
+            bodyColor: tipBody,
+            borderColor: tipBorder,
+            borderWidth: 1,
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function(ctx3) { return 'Revenue: Rs.' + ctx3.parsed.y.toLocaleString(); }
+            }
+          }
         },
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2,
-        pointBackgroundColor: '#1A1D27',
-        pointBorderColor: '#00D4FF',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#242836',
-          titleColor: 'rgba(255,255,255,0.87)',
-          bodyColor: '#8B92A5',
-          borderColor: 'rgba(0,212,255,0.25)',
-          borderWidth: 1,
-          padding: 10,
-          cornerRadius: 8,
-          displayColors: false,
-          callbacks: {
-            label: function(ctx) { return 'Revenue: Rs.' + ctx.parsed.y.toLocaleString(); }
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: grid, drawBorder: false },
+            ticks: { color: tick, font: { size: 11, family: "'JetBrains Mono', monospace" }, callback: function(v) { return 'Rs.' + v.toLocaleString(); } },
+            border: { display: false }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: tick, font: { size: 11 } },
+            border: { display: false }
           }
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-          ticks: {
-            color: '#4E5569',
-            font: { size: 11, family: "'JetBrains Mono', monospace" },
-            callback: function(v) { return 'Rs.' + v.toLocaleString(); }
-          },
-          border: { display: false }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: '#4E5569', font: { size: 11 } },
-          border: { display: false }
-        }
       }
-    }
-  });
-});
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', build);
+  document.addEventListener('ars:themechange', build);
+})();
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php admin_footer(); ?>

@@ -93,7 +93,7 @@ unset($_SESSION['coupon_error'], $_SESSION['coupon_success']);
                                     <div class="row g-3 align-items-center">
                                         <!-- Product Image -->
                                         <div class="col-3 col-md-2">
-                                            <img src="<?= !empty($item['image']) ? UPLOAD_DIR . htmlspecialchars($item['image']) : 'https://via.placeholder.com/150' ?>" 
+                                            <img src="<?= getProductImage($item['image']) ?>" 
                                                  class="img-fluid rounded-2 bg-light p-2" 
                                                  alt="<?= htmlspecialchars($item['name']) ?>"
                                                  style="object-fit: contain; height: 80px;">

@@ -12,11 +12,28 @@ if ($action === 'update_status') {
     $id = (int)$_POST['id'];
     $delivery_status = $_POST['delivery_status'];
     $payment_status = $_POST['payment_status'];
+    $current_location = $_POST['current_location'] ?? '';
     
-    $stmt = $pdo->prepare("UPDATE orders SET delivery_status = ?, payment_status = ? WHERE id = ?");
-    if ($stmt->execute([$delivery_status, $payment_status, $id])) {
-        redirect('orders.php', 'Order status updated successfully.');
+    // Check if location changed to update timestamp
+    $stmt_check = $pdo->prepare("SELECT current_location FROM orders WHERE id = ?");
+    $stmt_check->execute([$id]);
+    $old_location = $stmt_check->fetchColumn();
+    
+    $sql = "UPDATE orders SET delivery_status = ?, payment_status = ?, current_location = ?";
+    $params = [$delivery_status, $payment_status, $current_location];
+    
+    if ($old_location !== $current_location) {
+        $sql .= ", location_updated_at = NOW()";
+    }
+    
+    $sql .= " WHERE id = ?";
+    $params[] = $id;
+    
+    $stmt = $pdo->prepare($sql);
+    $back = isset($_POST['redirect']) ? $_POST['redirect'] : 'orders.php';
+    if ($stmt->execute($params)) {
+        redirect($back, 'Order status updated successfully.');
     } else {
-        redirect('orders.php', 'Failed to update order status.', 'danger');
+        redirect($back, 'Failed to update order status.', 'danger');
     }
 }
