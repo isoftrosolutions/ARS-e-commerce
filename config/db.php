@@ -5,8 +5,8 @@ require_once __DIR__ . '/env.php';
 
 $host = 'localhost';
 $dbname = 'ektamultp_ars-ecommerce';
-$username = 'ektamultp_user';
-$password = 'U@retheone1';
+$username = 'ektamultp_ars';
+$password = '123inktry@#$';
 
 $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
 try {
