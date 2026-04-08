@@ -2,11 +2,13 @@
 // config/db.php
 require_once __DIR__ . '/env.php';
 
-$host = env('DB_HOST', 'localhost');
-$dbname = env('DB_NAME', 'ars_ecommerce');
-$user = env('DB_USER', 'root');
-$pass = env('DB_PASSWORD', '');
 
+$host = 'localhost';
+$dbname = 'ektamultp_ars-ecommerce';
+$username = 'ektamultp_user';
+$password = 'U@retheone1';
+
+$db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
