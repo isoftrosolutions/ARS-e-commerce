@@ -1,7 +1,4 @@
-# Environment files (contain secrets)
-.env
-.env.local
-.env.production
+
 
 # IDE
 .idea/
