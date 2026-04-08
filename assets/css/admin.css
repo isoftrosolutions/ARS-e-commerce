@@ -811,6 +811,7 @@ h4 { font-size: 15px; }
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
+  appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B92A5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: calc(100% - 8px) center;
@@ -893,6 +894,7 @@ h4 { font-size: 15px; }
   outline: none;
   transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-input::placeholder,
@@ -1375,6 +1377,14 @@ h4 { font-size: 15px; }
 .hidden { display: none !important; }
 .block  { display: block; }
 
+/* Commonly-used flex layout helper */
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .mt-1 { margin-top: 4px; }
 .mt-2 { margin-top: 8px; }
 .mt-3 { margin-top: 12px; }
@@ -1396,6 +1406,111 @@ h4 { font-size: 15px; }
 .overflow-hidden { overflow: hidden; }
 .text-right  { text-align: right; }
 .text-center { text-align: center; }
+
+/* Card with padding shorthand (card card-body combined) */
+.card.card-body { padding: 24px; }
+
+/* Badge status aliases — map delivery/payment status to badge variants */
+.badge-paid      { background: var(--success-dim); color: var(--success); }
+.badge-pending   { background: var(--warning-dim); color: var(--warning); }
+.badge-failed    { background: var(--danger-dim);  color: var(--danger); }
+.badge-confirmed { background: var(--info-dim);    color: var(--info); }
+.badge-shipped   { background: rgba(251,146,60,0.1);  color: #FB923C; }
+.badge-delivered { background: var(--success-dim); color: var(--success); }
+.badge-cancelled { background: var(--danger-dim);  color: var(--danger); }
+
+/* form-control alias for legacy HTML — forwards to form-input styles */
+.form-control {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  -webkit-appearance: none;
+  font-family: var(--font-body);
+}
+.form-control::placeholder { color: var(--text-muted); }
+.form-control:focus {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+  background: var(--bg-overlay);
+}
+
+/* table / table-container aliases for legacy HTML */
+.table-container { overflow-x: auto; }
+.table-container .table,
+table.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-container .table thead tr,
+table.table thead tr {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+.table-container .table thead th,
+table.table thead th {
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.table-container .table tbody tr,
+table.table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--t-fast);
+}
+.table-container .table tbody tr:last-child,
+table.table tbody tr:last-child { border-bottom: none; }
+.table-container .table tbody tr:hover,
+table.table tbody tr:hover { background: var(--bg-hover); }
+.table-container .table tbody td,
+table.table tbody td {
+  padding: 13px 16px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* modal-overlay alias for legacy pages */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-slow), visibility var(--t-slow);
+}
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal-overlay .modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.93) translateY(16px);
+  transition: transform var(--t-slow);
+  overflow: hidden;
+}
+.modal-overlay.open .modal { transform: scale(1) translateY(0); }
 
 /* 7. ANIMATIONS
    ============================================================ */
