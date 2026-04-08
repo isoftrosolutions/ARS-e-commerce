@@ -3,6 +3,9 @@
 
 function admin_header($title = 'Admin Dashboard', $active_page = 'dashboard') {
     $site_url = SITE_URL;
+    $is_collapsed = isset($_COOKIE['ars_sidebar']) && $_COOKIE['ars_sidebar'] === '1';
+    $user_name = $_SESSION['user_name'] ?? 'Admin';
+    $initial = strtoupper(substr($user_name, 0, 1));
     ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,16 +17,27 @@ function admin_header($title = 'Admin Dashboard', $active_page = 'dashboard') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="<?php echo $site_url; ?>/assets/css/admin-new.css">
+    <link rel="stylesheet" href="<?php echo $site_url; ?>/assets/app.css">
+    <style>
+        /* Ensuring basic layout connectivity if main CSS is still loading */
+        .admin-sidebar.collapsed { width: 80px; }
+        #sidebar-overlay.show { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+    </style>
 </head>
-<body>
+<body class="admin-body">
+    <!-- Mobile Overlay -->
+    <div id="sidebar-overlay"></div>
+
     <div class="admin-wrapper">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="admin-sidebar <?php echo $is_collapsed ? 'collapsed' : ''; ?>">
             <div class="sidebar-header">
                 <a href="<?php echo $site_url; ?>/admin/dashboard.php" class="logo">
                     <span class="logo-text">ARS</span> Admin
                 </a>
+                <button id="sidebar-toggle" class="btn btn-ghost btn-sm" style="margin-left: auto;">
+                    <i data-lucide="chevrons-left"></i>
+                </button>
             </div>
             <nav class="nav">
                 <a href="<?php echo $site_url; ?>/admin/dashboard.php" class="nav-item <?php echo $active_page === 'dashboard' ? 'active' : ''; ?>">
@@ -63,7 +77,7 @@ function admin_header($title = 'Admin Dashboard', $active_page = 'dashboard') {
         <main class="main-content">
             <header class="header">
                 <div class="header-left">
-                    <button class="hamburger-menu" aria-label="Toggle Sidebar">
+                    <button class="hamburger-menu" id="topbar-hamburger" aria-label="Toggle Mobile Menu">
                         <i data-lucide="menu"></i>
                     </button>
                     <h1 style="font-size: 1.25rem; margin-bottom: 0; font-weight: 600;"><?php echo $title; ?></h1>
@@ -72,11 +86,16 @@ function admin_header($title = 'Admin Dashboard', $active_page = 'dashboard') {
                     <button id="theme-toggle" class="btn btn-ghost" aria-label="Toggle Theme">
                         <i data-lucide="moon"></i>
                     </button>
-                    <div class="user-profile" style="display: flex; align-items: center; gap: 10px;">
+                    <div class="user-profile" id="user-dropdown-trigger" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <div class="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
-                            A
+                            <?php echo $initial; ?>
                         </div>
-                        <span class="user-name" style="font-weight: 500;">Admin</span>
+                        <span class="user-name" style="font-weight: 500;"><?php echo htmlspecialchars($user_name); ?></span>
+                    </div>
+                    <!-- Dropdown for user options -->
+                    <div id="user-dropdown-menu" class="dropdown-menu">
+                         <a href="<?php echo $site_url; ?>/admin/settings.php" class="dropdown-item"><i data-lucide="user"></i> Profile</a>
+                         <a href="<?php echo $site_url; ?>/auth/logout.php" class="dropdown-item"><i data-lucide="log-out"></i> Logout</a>
                     </div>
                 </div>
             </header>
@@ -93,6 +112,12 @@ function admin_footer() {
 
     <script src="<?php echo $site_url; ?>/assets/js/admin.js"></script>
     <script>
+        // Update cookie when sidebar is toggled for PHP persistence
+        document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+            const isCollapsed = document.querySelector('.admin-sidebar').classList.contains('collapsed');
+            document.cookie = "ars_sidebar=" + (isCollapsed ? "1" : "0") + "; path=/; max-age=" + (30*24*60*60);
+        });
+        
         // Initialize Lucide Icons
         lucide.createIcons();
     </script>
