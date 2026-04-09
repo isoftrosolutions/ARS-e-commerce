@@ -8,8 +8,8 @@
                 <div class="col-lg-4 col-md-12">
                     <div class="footer-brand mb-4">
                         <a href="index.php" class="d-flex align-items-center text-decoration-none mb-3">
-                            <div class="brand-logo me-2" style="width: 45px; height: 45px; background: var(--ars-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
-                                <i class="bi bi-bag-check-fill fs-4"></i>
+                            <div class="brand-logo me-2" style="width: 45px; height: 45px; border-radius: 12px; overflow: hidden; flex-shrink: 0;">
+                                <img src="<?= $base_url ?>/assets/logo.jpeg" alt="ARS Shop Logo" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <span class="brand-text fw-bold text-white fs-3">Easy Shopping <span class="text-primary">A.R.S</span></span>
                         </a>
