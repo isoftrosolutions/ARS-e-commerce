@@ -561,6 +561,43 @@ img { display: block; }
   .feat-item:nth-child(odd) { border-right: none; }
   .feat-item:last-child { border-bottom: none; }
 }
+
+/* ═══ Hero — Light White Theme (matches header) ═══════════════ */
+#hero {
+  background: #ffffff;
+}
+/* Soften watermark for white bg */
+.hero-watermark {
+  -webkit-text-stroke: 1px rgba(15,23,42,0.045);
+}
+/* Tone down ambient orbs */
+.hero-orb-1 {
+  background: radial-gradient(circle, rgba(249,115,22,0.08), transparent 70%);
+}
+.hero-orb-2 {
+  background: radial-gradient(circle, rgba(245,158,11,0.07), transparent 70%);
+}
+/* Dark text for hero copy */
+.hero-h1 .line-solid  { color: #0f172a; }
+.hero-h1 .line-outline { -webkit-text-stroke: 1.5px rgba(15,23,42,0.13); }
+.hero-desc  { color: rgba(15,23,42,0.48); }
+/* Badge stays ember, tweak bg */
+.live-badge { background: rgba(249,115,22,0.07); border-color: rgba(249,115,22,0.22); }
+/* Stats separators and labels */
+.hero-stats .hs-sep { background: rgba(15,23,42,0.1); }
+.hero-stats .hs-lbl { color: #94a3b8; }
+/* Ghost button visible on white */
+.btn-void {
+  border-color: rgba(15,23,42,0.18);
+  color: #0f172a;
+}
+.btn-void:hover {
+  background: rgba(15,23,42,0.05);
+  border-color: rgba(15,23,42,0.3);
+  color: #0f172a;
+}
+/* Scroll hint darker */
+.hero-scroll { color: rgba(15,23,42,0.2); }
 </style>
 
 <!-- ════ CURSOR ════════════════════════════════════════════════ -->
@@ -951,7 +988,7 @@ img { display: block; }
       // Draw node
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(249,115,22,' + p.a + ')';
+      ctx.fillStyle = 'rgba(200,100,30,' + (p.a * 0.55) + ')';
       ctx.fill();
 
       // Draw connections
@@ -960,12 +997,12 @@ img { display: block; }
         const ex = p.x - q.x, ey = p.y - q.y;
         const ed = Math.sqrt(ex*ex + ey*ey);
         if (ed < LINK){
-          const alpha = 0.09 * (1 - ed / LINK);
+          const alpha = 0.07 * (1 - ed / LINK);
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = 'rgba(249,115,22,' + alpha + ')';
-          ctx.lineWidth = 0.6;
+          ctx.strokeStyle = 'rgba(180,90,20,' + alpha + ')';
+          ctx.lineWidth = 0.5;
           ctx.stroke();
         }
       }
