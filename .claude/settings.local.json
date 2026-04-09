@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(php:*)",
-      "WebFetch(domain:easyshoppingars.com)"
+      "WebFetch(domain:easyshoppingars.com)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }

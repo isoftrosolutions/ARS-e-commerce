@@ -2,4 +2,4 @@
 /* This file is intentionally minimal; all page styles are scoped in index.php <style>. */
 
 /* Prevent Bootstrap bg-light from bleeding through on homepage */
-body.index-page { background: #04060f !important; }
+body.index-page { background: #ced1db !important; }
