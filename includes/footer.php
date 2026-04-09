@@ -57,19 +57,19 @@
                             <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <i data-lucide="map-pin" class="w-4 h-4 text-brand-500"></i>
                             </div>
-                            <span class="text-sm text-gray-400">Kathmandu Metropolitan City,<br>Bagmati Province, Nepal</span>
+                            <span class="text-sm text-gray-400">Birgunj-13 Radhemai,<br>Parsa, Nepal</span>
                         </li>
                         <li class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
                                 <i data-lucide="phone" class="w-4 h-4 text-brand-500"></i>
                             </div>
-                            <span class="text-sm text-gray-400">+977-98XXXXXXXX</span>
+                            <span class="text-sm text-gray-400">+977-9820210361</span>
                         </li>
                         <li class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
                                 <i data-lucide="mail" class="w-4 h-4 text-brand-500"></i>
                             </div>
-                            <span class="text-sm text-gray-400">support@arsshop.com</span>
+                            <span class="text-sm text-gray-400">easyshoppinga.r.s1@gmail.com</span>
                         </li>
                     </ul>
                 </div>
@@ -86,7 +86,16 @@
                         <span class="payment-badge text-slate-800">COD</span>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 text-center md:text-right">&copy; <?= date('Y') ?> Easy Shopping A.R.S. All Rights Reserved.</p>
+                <div class="flex items-center gap-4">
+                    <!-- PWA Install Button -->
+                    <button id="pwa-install-btn"
+                        class="hidden items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white hover:bg-brand-700 transition-all shadow-lg shadow-brand-600/30"
+                        aria-label="Install ARS Shop App">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        Install App
+                    </button>
+                    <p class="text-xs text-gray-500 text-center md:text-right">&copy; <?= date('Y') ?> Easy Shopping A.R.S. All Rights Reserved.</p>
+                </div>
             </div>
         </div>
     </footer>
@@ -171,13 +180,67 @@
             anchor.addEventListener('click', function(e) {
                 const targetId = this.getAttribute('href');
                 if (targetId === '#') return;
-                
+
                 const target = document.querySelector(targetId);
                 if (target) {
                     e.preventDefault();
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
+        });
+
+        // ── PWA: Service Worker Registration ──────────────────────────────
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/ARS/sw.js', { scope: '/ARS/' })
+                    .then(reg => {
+                        // Check for SW updates periodically
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.warn('[PWA] SW registration failed:', err));
+            });
+        }
+
+        // ── PWA: Install Prompt ───────────────────────────────────────────
+        let _deferredPrompt = null;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            _deferredPrompt = e;
+            if (installBtn) {
+                installBtn.classList.remove('hidden');
+                installBtn.classList.add('flex');
+            }
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!_deferredPrompt) return;
+                _deferredPrompt.prompt();
+                const { outcome } = await _deferredPrompt.userChoice;
+                _deferredPrompt = null;
+                if (outcome === 'accepted') {
+                    installBtn.classList.add('hidden');
+                    installBtn.classList.remove('flex');
+                }
+            });
+        }
+
+        // Hide install button once the app is installed
+        window.addEventListener('appinstalled', () => {
+            if (installBtn) {
+                installBtn.classList.add('hidden');
+                installBtn.classList.remove('flex');
+            }
+            _deferredPrompt = null;
         });
     </script>
 </body>

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-$page_title = "About Us";
+$page_title     = 'About Us | Easy Shopping A.R.S — Online Store in Birgunj, Nepal';
+$page_meta_desc = 'Learn about Easy Shopping A.R.S, Nepal\'s trusted online shopping destination based in Birgunj-13 Radhemai, Parsa. Founded in 2026 with a mission to deliver quality products across Nepal.';
 require_once __DIR__ . '/includes/header-bootstrap.php';
 ?>
 

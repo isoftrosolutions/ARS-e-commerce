@@ -44,7 +44,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                         <h2 class="h4 fw-bold text-primary mt-5 mb-4">5. Contact Us</h2>
                         <p>If you have any questions about this privacy policy or our privacy practices, please contact us at:</p>
                         <p class="mb-0"><strong>Email:</strong> easyshoppinga.r.s1@gmail.com</p>
-                        <p><strong>Phone:</strong> +977 981-2231441</p>
+                        <p><strong>Phone:</strong> +977 982-0210361</p>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,6 @@
 <?php
+$page_title    = 'Online Shopping in Nepal | Buy Electronics, Fashion & More';
+$page_meta_desc= 'Easy Shopping A.R.S — Nepal\'s trusted online store. Shop electronics, fashion, home goods & more with fast delivery to Birgunj, Parsa and across Nepal. eSewa & COD accepted.';
 require_once __DIR__ . '/includes/header-bootstrap.php';
 
 // Fetch featured products

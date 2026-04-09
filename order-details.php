@@ -226,8 +226,8 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                                 <i class="bi bi-headset me-2"></i> Need Help?
                             </h5>
                             <p class="mb-3 small opacity-75">Have questions about your order? We're here to help.</p>
-                            <a href="tel:+9779800000000" class="text-white text-decoration-none fw-semibold">
-                                <i class="bi bi-telephone me-1"></i> +977 980-000-0000
+                            <a href="tel:+9779820210361" class="text-white text-decoration-none fw-semibold">
+                                <i class="bi bi-telephone me-1"></i> +977 982-0210361
                             </a>
                         </div>
                     </div>

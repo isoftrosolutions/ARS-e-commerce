@@ -1,5 +1,6 @@
 <?php
-$page_title = "Shop All Products";
+$page_title     = 'Shop All Products | Electronics, Fashion & More in Nepal';
+$page_meta_desc = 'Browse our full collection of electronics, fashion, home goods and more. Shop online in Nepal with fast delivery to Birgunj, Parsa and nationwide. Easy payments via eSewa, FonePay & COD.';
 require_once __DIR__ . '/includes/header-bootstrap.php';
 
 $category_id = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT) ?? 0;

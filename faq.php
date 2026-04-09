@@ -1,6 +1,41 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-$page_title = "Frequently Asked Questions";
+$page_title     = 'FAQ — Orders, Shipping & Payments | Easy Shopping A.R.S Nepal';
+$page_meta_desc = 'Find answers to common questions about placing orders, shipping times, payment methods (eSewa, FonePay, COD), returns and more at Easy Shopping A.R.S.';
+
+$page_schema = '<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "How do I place an order?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Simply browse our shop, add items to your cart, and proceed to checkout. You can choose to pay via eSewa, FonePay, or Cash on Delivery."}
+        },
+        {
+            "@type": "Question",
+            "name": "What is your return policy?",
+            "acceptedAnswer": {"@type": "Answer", "text": "We offer a 7-day return policy for unused and undamaged items in their original packaging."}
+        },
+        {
+            "@type": "Question",
+            "name": "How long does delivery take?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Delivery within Kathmandu Valley usually takes 1-2 business days. For outside valley orders, it typically takes 3-5 business days."}
+        },
+        {
+            "@type": "Question",
+            "name": "Do you offer free shipping?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Yes! We offer free delivery on all orders over Rs. 1,000."}
+        },
+        {
+            "@type": "Question",
+            "name": "Which payment methods do you accept?",
+            "acceptedAnswer": {"@type": "Answer", "text": "We accept eSewa, FonePay, Bank Transfer, and Cash on Delivery (COD)."}
+        }
+    ]
+}
+</script>';
 require_once __DIR__ . '/includes/header-bootstrap.php';
 ?>
 

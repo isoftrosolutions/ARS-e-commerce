@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ars-shop-v1';
+const CACHE_NAME = 'ars-shop-v2';
 const STATIC_ASSETS = [
     './',
     './index.php',
@@ -6,6 +6,7 @@ const STATIC_ASSETS = [
     './cart.php',
     './manifest.json',
     './assets/app.css',
+    './assets/logo.jpeg',
     './assets/icon-192.png',
     './assets/icon-512.png'
 ];

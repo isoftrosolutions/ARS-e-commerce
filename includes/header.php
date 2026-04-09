@@ -9,14 +9,46 @@ try {
 } catch (PDOException $e) {
     $nav_categories = [];
 }
+$_base_url     = rtrim(SITE_URL, '/');
+$_asset_url    = $_base_url . '/assets';
+$_seo_title    = isset($page_title) ? $page_title . ' | ' . SITE_NAME : SITE_NAME;
+$_seo_desc     = isset($page_meta_desc) ? $page_meta_desc : 'Easy Shopping A.R.S — Your trusted online shopping destination in Nepal. Quality products, fast delivery across Birgunj, Parsa and all of Nepal.';
+$_seo_canonical= isset($page_canonical) ? $page_canonical : $_base_url . '/ARS' . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$_seo_image    = isset($page_og_image) ? $page_og_image : $_asset_url . '/logo.jpeg';
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($page_title) ? $page_title . ' | ' . SITE_NAME : SITE_NAME ?></title>
-    
+    <title><?= htmlspecialchars($_seo_title) ?></title>
+    <meta name="description" content="<?= htmlspecialchars($_seo_desc) ?>">
+    <link rel="canonical" href="<?= htmlspecialchars($_seo_canonical) ?>">
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website">
+    <meta property="og:site_name"   content="<?= SITE_NAME ?>">
+    <meta property="og:title"       content="<?= htmlspecialchars($_seo_title) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($_seo_desc) ?>">
+    <meta property="og:url"         content="<?= htmlspecialchars($_seo_canonical) ?>">
+    <meta property="og:image"       content="<?= htmlspecialchars($_seo_image) ?>">
+    <meta property="og:locale"      content="en_NP">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="<?= htmlspecialchars($_seo_title) ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars($_seo_desc) ?>">
+    <meta name="twitter:image"       content="<?= htmlspecialchars($_seo_image) ?>">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/ARS/manifest.json">
+    <meta name="theme-color" content="#1a0f0a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ARS Shop">
+    <link rel="apple-touch-icon" href="/ARS/assets/logo.jpeg">
+
     <!-- Google Fonts: Inter with font-display swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +79,12 @@ try {
         .text-brand-500 { color: var(--brand-500); }
         .border-brand-600 { border-color: var(--brand-600); }
     </style>
+
+    <!-- Global Schema -->
+    <?php require_once __DIR__ . '/schema.php'; ?>
+    <?php if (isset($page_schema)): ?>
+        <?= $page_schema ?>
+    <?php endif; ?>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
@@ -65,7 +103,7 @@ try {
                     <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 overflow-hidden">
                         <img src="assets/logo.jpeg" alt="ARS Shop Logo" class="w-full h-full object-contain p-1">
                     </div>
-                    <span class="text-xl font-extrabold tracking-tighter text-slate-900">ARS<span class="text-brand-600">SHOP</span></span>
+                    <span class="text-xl font-extrabold tracking-tighter text-slate-900">Easy Shopping<span class="text-brand-600"> A.R.S</span></span>
                 </a>
                 <button onclick="closeMobileMenu()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
                     <i data-lucide="x" class="w-6 h-6"></i>

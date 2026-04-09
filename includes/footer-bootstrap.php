@@ -19,7 +19,7 @@
                         <div class="shop-address mt-3">
                             <div class="d-flex align-items-start gap-2 text-light small">
                                 <i class="bi bi-geo-alt-fill text-primary mt-1"></i>
-                                <span><strong>Shop Address:</strong> [INSERT SHOP ADDRESS HERE]</span>
+                                <span><strong>Shop Address:</strong> Birgunj-13 Radhemai, Parsa, Nepal</span>
                             </div>
                         </div>
                     </div>
@@ -40,9 +40,9 @@
                                 </li>
                                 <li class="mb-3">
                                     <div class="small text-muted mb-1">Support Contact</div>
-                                    <a href="tel:+9779812231441" class="text-decoration-none text-light hover-primary d-flex align-items-center gap-2">
+                                    <a href="tel:+9779820210361" class="text-decoration-none text-light hover-primary d-flex align-items-center gap-2">
                                         <i class="bi bi-headset text-primary"></i>
-                                        +977 981-2231441
+                                        +977 982-0210361
                                     </a>
                                 </li>
                             </ul>

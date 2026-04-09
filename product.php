@@ -28,7 +28,53 @@ try {
         $avg_rating = $total_stars / count($reviews);
     }
 
-    $page_title = $product['name'];
+    $page_title     = $product['name'] . ' | Buy Online in Nepal — ARS Shop';
+    $_desc_clean    = strip_tags($product['description'] ?? '');
+    $page_meta_desc = strlen($_desc_clean) > 10
+        ? mb_substr($_desc_clean, 0, 150) . '...'
+        : 'Buy ' . $product['name'] . ' online in Nepal. Fast delivery to Birgunj, Parsa & nationwide. Pay via eSewa, FonePay or Cash on Delivery.';
+    $page_og_image  = !empty($product['image']) ? rtrim(SITE_URL, '/') . '/ARS/uploads/' . $product['image'] : null;
+
+    // Product + BreadcrumbList schema
+    $_p_base   = rtrim(SITE_URL, '/') . '/ARS';
+    $_p_price  = $product['discount_price'] ?: $product['price'];
+    $_p_avail  = $product['stock'] > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+    $_p_image  = $page_og_image ?: $_p_base . '/assets/logo.jpeg';
+    $_p_rating = count($reviews) > 0 ? '"aggregateRating": {"@type": "AggregateRating","ratingValue": "' . number_format($avg_rating, 1) . '","reviewCount": "' . count($reviews) . '","bestRating": "5","worstRating": "1"},' : '';
+
+    $page_schema = '<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "Product",
+            "name": ' . json_encode($product['name']) . ',
+            "description": ' . json_encode(strip_tags($product['description'] ?? '')) . ',
+            "sku": ' . json_encode($product['sku'] ?? '') . ',
+            "image": ' . json_encode($_p_image) . ',
+            "brand": {"@type": "Brand", "name": "Easy Shopping A.R.S"},
+            "category": ' . json_encode($product['category_name'] ?? '') . ',
+            ' . $_p_rating . '
+            "offers": {
+                "@type": "Offer",
+                "priceCurrency": "NPR",
+                "price": ' . json_encode((string)$_p_price) . ',
+                "availability": ' . json_encode($_p_avail) . ',
+                "seller": {"@type": "Organization", "name": "Easy Shopping A.R.S"},
+                "url": ' . json_encode($_p_base . '/product.php?slug=' . urlencode($product['slug'])) . '
+            }
+        },
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Home", "item": ' . json_encode($_p_base) . '},
+                {"@type": "ListItem", "position": 2, "name": ' . json_encode($product['category_name'] ?? 'Shop') . ', "item": ' . json_encode($_p_base . '/shop.php?category=' . $product['category_id']) . '},
+                {"@type": "ListItem", "position": 3, "name": ' . json_encode($product['name']) . '}
+            ]
+        }
+    ]
+}
+</script>';
 } catch (PDOException $e) {
     redirect('shop.php');
 }

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-$page_title = "Contact Us";
+$page_title     = 'Contact Us | Easy Shopping A.R.S — Birgunj, Nepal';
+$page_meta_desc = 'Get in touch with Easy Shopping A.R.S. Visit us at Birgunj-13 Radhemai, Parsa, Nepal or call +977 982-0210361. We\'re here to help with orders, returns and enquiries.';
 $error = null;
 $success = false;
 
@@ -66,7 +67,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                         </div>
                         <div>
                             <span class="text-muted small d-block">Shop Address</span>
-                            <span class="fw-semibold">[INSERT SHOP ADDRESS HERE]</span>
+                            <span class="fw-semibold">Birgunj-13 Radhemai, Parsa, Nepal</span>
                         </div>
                     </div>
 
@@ -86,7 +87,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                         </div>
                         <div>
                             <span class="text-muted small d-block">Support Contact</span>
-                            <a href="tel:+9779812231441" class="text-decoration-none text-dark fw-semibold">+977 981-2231441</a>
+                            <a href="tel:+9779820210361" class="text-decoration-none text-dark fw-semibold">+977 982-0210361</a>
                         </div>
                     </div>
 
