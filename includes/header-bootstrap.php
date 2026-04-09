@@ -100,10 +100,10 @@ $_seo_image    = isset($page_og_image) ? $page_og_image : $asset_url . '/logo.jp
                 
                 <!-- Logo -->
                 <a class="navbar-brand d-flex align-items-center text-decoration-none" href="<?= $base_url ?>/index.php">
-                    <div class="brand-logo me-2">
-                        <img src="<?= $asset_url ?>/logo.jpeg" alt="ARS Shop Logo" style="width:32px;height:32px;object-fit:contain;padding:4px;">
+                    <div class="me-2" style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid #e2e8f0;">
+                        <img src="<?= $asset_url ?>/logo.jpeg" alt="Easy Shopping A.R.S Logo" style="width:100%;height:100%;object-fit:cover;">
                     </div>
-                    <span class="brand-text fw-bold">ARS<span class="text-primary">SHOP</span></span>
+                    <span class="brand-text fw-bold fs-6">Easy Shopping <span class="text-primary">A.R.S</span></span>
                 </a>
                 
                 <!-- Search Bar - Desktop -->
