@@ -4,7 +4,7 @@ require_once __DIR__ . '/config/db.php';
 header('Content-Type: application/xml; charset=utf-8');
 header('X-Robots-Tag: noindex');
 
-$base = rtrim(SITE_URL, '/') . '/ARS';
+$base = rtrim(SITE_URL, '/');
 $now  = date('Y-m-d');
 
 // Static pages

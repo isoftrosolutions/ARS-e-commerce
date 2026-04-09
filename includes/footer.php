@@ -192,7 +192,8 @@
         // ── PWA: Service Worker Registration ──────────────────────────────
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/ARS/sw.js', { scope: '/ARS/' })
+                const _swPath = <?= json_encode(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/')) ?>;
+                navigator.serviceWorker.register(_swPath + '/sw.js', { scope: _swPath + '/' })
                     .then(reg => {
                         // Check for SW updates periodically
                         reg.addEventListener('updatefound', () => {

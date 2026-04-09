@@ -36,7 +36,7 @@ try {
     $page_og_image  = !empty($product['image']) ? rtrim(SITE_URL, '/') . '/ARS/uploads/' . $product['image'] : null;
 
     // Product + BreadcrumbList schema
-    $_p_base   = rtrim(SITE_URL, '/') . '/ARS';
+    $_p_base   = rtrim(SITE_URL, '/');
     $_p_price  = $product['discount_price'] ?: $product['price'];
     $_p_avail  = $product['stock'] > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
     $_p_image  = $page_og_image ?: $_p_base . '/assets/logo.jpeg';

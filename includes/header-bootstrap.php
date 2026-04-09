@@ -13,10 +13,13 @@ try {
 $base_url  = rtrim(SITE_URL, '/');
 $asset_url = $base_url . '/assets';
 
+// Portable site path: '' on live root, '/ARS' on local subdirectory
+$_site_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
 // SEO defaults — override per-page before including this header
 $_seo_title    = isset($page_title) ? $page_title . ' | ' . SITE_NAME : SITE_NAME;
 $_seo_desc     = isset($page_meta_desc) ? $page_meta_desc : 'Easy Shopping A.R.S — Your trusted online shopping destination in Nepal. Quality products, fast delivery across Birgunj, Parsa and all of Nepal.';
-$_seo_canonical= isset($page_canonical) ? $page_canonical : $base_url . '/ARS' . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$_seo_canonical= isset($page_canonical) ? $page_canonical : $base_url . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $_seo_image    = isset($page_og_image) ? $page_og_image : $asset_url . '/logo.jpeg';
 ?>
 <!DOCTYPE html>
@@ -44,7 +47,7 @@ $_seo_image    = isset($page_og_image) ? $page_og_image : $asset_url . '/logo.jp
     <meta name="twitter:image"       content="<?= htmlspecialchars($_seo_image) ?>">
 
     <!-- PWA -->
-    <link rel="manifest" href="<?= $base_url ?>/ARS/manifest.json">
+    <link rel="manifest" href="<?= $_site_path ?>/manifest.json">
     <meta name="theme-color" content="#1a0f0a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">

@@ -3,7 +3,7 @@
  * Global JSON-LD schema — included in both header files.
  * Outputs Organization, LocalBusiness, and WebSite schemas.
  */
-$_schema_base = rtrim(SITE_URL, '/') . '/ARS';
+$_schema_base = rtrim(SITE_URL, '/');
 ?>
 <script type="application/ld+json">
 {

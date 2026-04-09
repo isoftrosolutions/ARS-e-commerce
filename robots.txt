@@ -2,19 +2,19 @@ User-agent: *
 Allow: /
 
 # Block admin, auth, and internal pages
-Disallow: /ARS/admin/
-Disallow: /ARS/auth/
-Disallow: /ARS/config/
-Disallow: /ARS/includes/
-Disallow: /ARS/vendor/
-Disallow: /ARS/scripts/
-Disallow: /ARS/cart-action.php
-Disallow: /ARS/checkout-process.php
-Disallow: /ARS/wishlist-action.php
-Disallow: /ARS/submit-review.php
-Disallow: /ARS/setup_db.php
-Disallow: /ARS/cart.php
-Disallow: /ARS/checkout.php
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /config/
+Disallow: /includes/
+Disallow: /vendor/
+Disallow: /scripts/
+Disallow: /cart-action.php
+Disallow: /checkout-process.php
+Disallow: /wishlist-action.php
+Disallow: /submit-review.php
+Disallow: /setup_db.php
+Disallow: /cart.php
+Disallow: /checkout.php
 
 # Sitemap location
-Sitemap: https://easyshoppingars.com/ARS/sitemap.php
+Sitemap: https://easyshoppingars.com/sitemap.php

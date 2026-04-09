@@ -11,9 +11,10 @@ try {
 }
 $_base_url     = rtrim(SITE_URL, '/');
 $_asset_url    = $_base_url . '/assets';
+$_site_path    = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $_seo_title    = isset($page_title) ? $page_title . ' | ' . SITE_NAME : SITE_NAME;
 $_seo_desc     = isset($page_meta_desc) ? $page_meta_desc : 'Easy Shopping A.R.S — Your trusted online shopping destination in Nepal. Quality products, fast delivery across Birgunj, Parsa and all of Nepal.';
-$_seo_canonical= isset($page_canonical) ? $page_canonical : $_base_url . '/ARS' . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$_seo_canonical= isset($page_canonical) ? $page_canonical : $_base_url . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $_seo_image    = isset($page_og_image) ? $page_og_image : $_asset_url . '/logo.jpeg';
 ?>
 <!DOCTYPE html>
@@ -41,13 +42,13 @@ $_seo_image    = isset($page_og_image) ? $page_og_image : $_asset_url . '/logo.j
     <meta name="twitter:image"       content="<?= htmlspecialchars($_seo_image) ?>">
 
     <!-- PWA -->
-    <link rel="manifest" href="/ARS/manifest.json">
+    <link rel="manifest" href="<?= $_site_path ?>/manifest.json">
     <meta name="theme-color" content="#1a0f0a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ARS Shop">
-    <link rel="apple-touch-icon" href="/ARS/assets/logo.jpeg">
+    <link rel="apple-touch-icon" href="<?= $_site_path ?>/assets/logo.jpeg">
 
     <!-- Google Fonts: Inter with font-display swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
