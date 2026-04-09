@@ -69,9 +69,9 @@
                 </div>
 
                 <!-- Right Section: Social Media -->
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-2 col-md-4 col-6">
                     <h6 class="text-uppercase fw-bold mb-4 text-white letter-spacing-1">Follow Us</h6>
-                    <p class="text-light small mb-4">Stay updated with our latest arrivals and exclusive offers on social media.</p>
+                    <p class="text-light small mb-4">Stay updated with our latest arrivals and exclusive offers.</p>
                     <div class="d-flex flex-wrap gap-2">
                         <a href="https://www.facebook.com/easyshoppinga.r.s1" target="_blank" rel="noopener noreferrer" class="social-btn" title="Facebook">
                             <i class="bi bi-facebook"></i>
@@ -86,6 +86,33 @@
                             <i class="bi bi-youtube"></i>
                         </a>
                     </div>
+                </div>
+
+                <!-- Install App Section -->
+                <div class="col-lg-3 col-md-4 col-6">
+                    <h6 class="text-uppercase fw-bold mb-4 text-white letter-spacing-1">Get Our App</h6>
+                    <p class="text-light small mb-4">Install Easy Shopping A.R.S on your phone for a faster, app-like experience — no app store needed.</p>
+                    <div class="app-install-card p-3 rounded-3 mb-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div style="width:48px;height:48px;border-radius:12px;overflow:hidden;flex-shrink:0;">
+                                <img src="<?= $base_url ?>/assets/logo.jpeg" alt="ARS App Icon" style="width:100%;height:100%;object-fit:cover;">
+                            </div>
+                            <div>
+                                <div class="fw-semibold text-white small">Easy Shopping A.R.S</div>
+                                <div class="text-muted" style="font-size:11px;">Free · Works offline</div>
+                            </div>
+                        </div>
+                        <button id="pwa-install-btn-footer"
+                            class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 fw-semibold"
+                            style="font-size:13px;" aria-label="Install ARS Shop App">
+                            <i class="bi bi-download"></i>
+                            Install on This Device
+                        </button>
+                        <p id="pwa-installed-msg" class="text-success text-center small mb-0 mt-2 d-none">
+                            <i class="bi bi-check-circle-fill me-1"></i> App already installed!
+                        </p>
+                    </div>
+                    <p class="text-muted" style="font-size:11px;"><i class="bi bi-info-circle me-1"></i>Works on Android, iOS & desktop browsers.</p>
                 </div>
             </div>
 
@@ -226,6 +253,54 @@
             }
         })();
         
+        // ── PWA: Service Worker + Install Prompt ──────────────────────────
+        (function() {
+            const installBtn = document.getElementById('pwa-install-btn-footer');
+            const installedMsg = document.getElementById('pwa-installed-msg');
+            let _deferredPrompt = null;
+
+            // Register service worker
+            if ('serviceWorker' in navigator) {
+                const _swPath = <?= json_encode(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/')) ?>;
+                navigator.serviceWorker.register(_swPath + '/sw.js', { scope: _swPath + '/' })
+                    .catch(err => console.warn('[PWA] SW registration failed:', err));
+            }
+
+            // Show install button when browser is ready
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                _deferredPrompt = e;
+                if (installBtn) installBtn.classList.remove('d-none');
+            });
+
+            // Trigger install on button click
+            if (installBtn) {
+                installBtn.addEventListener('click', async function() {
+                    if (!_deferredPrompt) return;
+                    _deferredPrompt.prompt();
+                    const { outcome } = await _deferredPrompt.userChoice;
+                    _deferredPrompt = null;
+                    if (outcome === 'accepted' && installedMsg) {
+                        installBtn.classList.add('d-none');
+                        installedMsg.classList.remove('d-none');
+                    }
+                });
+            }
+
+            // Already installed
+            window.addEventListener('appinstalled', function() {
+                _deferredPrompt = null;
+                if (installBtn) installBtn.classList.add('d-none');
+                if (installedMsg) installedMsg.classList.remove('d-none');
+            });
+
+            // If already running as standalone (installed), show installed msg
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                if (installBtn) installBtn.classList.add('d-none');
+                if (installedMsg) installedMsg.classList.remove('d-none');
+            }
+        })();
+
         // Close mobile menu on link click
         document.querySelectorAll('.mobile-nav-link:not([data-bs-toggle])').forEach(function(link) {
             link.addEventListener('click', function() {
