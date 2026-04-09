@@ -19,27 +19,22 @@ try {
 <section class="hero-section position-relative overflow-hidden">
     <div class="hero-overlay"></div>
     <div class="hero-bg"></div>
-    <div class="container position-relative py-5 py-md-5">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-10 col-xl-8">
-                <span class="badge bg-primary px-3 py-2 mb-3 mb-md-4 animate-bounce-in">
-                    <i class="bi bi-stars me-1"></i> New Season Arrival
-                </span>
-                <h1 class="display-5 display-md-4 display-lg-3 fw-bold text-white mb-3 mb-md-4 lh-base">
-                    UPGRADE YOUR <span class="text-warning">LIFESTYLE</span> WITH ARS
-                </h1>
-                <p class="lead text-light opacity-75 mb-4 mb-md-5 mx-auto" style="max-width: 600px;">
-                    Discover the latest trends in electronics, fashion, and home essentials. Premium quality, delivered fast to your doorstep.
-                </p>
-                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
-                    <a href="shop.php" class="btn btn-primary btn-lg px-4 px-md-5 py-3 fw-semibold shadow-lg">
-                        <i class="bi bi-bag me-2"></i>Shop Collection
-                    </a>
-                    <a href="#featured" class="btn btn-outline-light btn-lg px-4 px-md-5 py-3 fw-semibold">
-                        <i class="bi bi-percent me-2"></i>View Deals
-                    </a>
-                </div>
-            </div>
+    <div class="container position-relative py-5">
+        <div style="max-width: 480px;">
+            <span class="badge bg-primary text-white px-3 py-2 mb-3 rounded-2 fw-medium" style="font-size:12px; letter-spacing:.5px;">
+                New Arrivals
+            </span>
+            <h1 class="fw-bold text-white lh-sm mb-2" style="font-size: clamp(2rem, 5vw, 3.2rem);">
+                Easy Shopping
+                <span class="d-block text-primary">A.R.S</span>
+            </h1>
+            <p class="text-white mb-4" style="opacity:.8; max-width: 320px; font-size:15px;">
+                Discover amazing deals on thousands of products
+            </p>
+            <a href="shop.php" class="btn btn-primary d-inline-flex align-items-center gap-2 fw-semibold px-4 py-2 rounded-2">
+                Shop Now
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
         </div>
     </div>
 </section>
