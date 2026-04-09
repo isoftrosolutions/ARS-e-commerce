@@ -301,6 +301,17 @@
             }
         })();
 
+        // ── Hero carousel dot sync ────────────────────────────────────────
+        (function() {
+            const carousel = document.getElementById('heroCarousel');
+            if (!carousel) return;
+            carousel.addEventListener('slide.bs.carousel', function(e) {
+                document.querySelectorAll('.hero-dot').forEach(function(dot, i) {
+                    dot.classList.toggle('active', i === e.to);
+                });
+            });
+        })();
+
         // Close mobile menu on link click
         document.querySelectorAll('.mobile-nav-link:not([data-bs-toggle])').forEach(function(link) {
             link.addEventListener('click', function() {

@@ -16,27 +16,53 @@ try {
 ?>
 
 <!-- Hero Section -->
-<section class="hero-section position-relative overflow-hidden">
-    <div class="hero-overlay"></div>
-    <div class="hero-bg"></div>
-    <div class="container position-relative py-5">
-        <div style="max-width: 480px;">
-            <span class="badge bg-primary text-white px-3 py-2 mb-3 rounded-2 fw-medium" style="font-size:12px; letter-spacing:.5px;">
+<section class="position-relative overflow-hidden" style="min-height:460px;">
+
+    <!-- Background Carousel -->
+    <div id="heroCarousel" class="carousel slide carousel-fade position-absolute w-100 h-100" data-bs-ride="carousel" data-bs-interval="4500" style="top:0;left:0;z-index:0;">
+        <div class="carousel-inner h-100">
+            <div class="carousel-item active h-100">
+                <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1400&auto=format&fit=crop');"></div>
+            </div>
+            <div class="carousel-item h-100">
+                <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=1400&auto=format&fit=crop');"></div>
+            </div>
+            <div class="carousel-item h-100">
+                <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1400&auto=format&fit=crop');"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dark Overlay -->
+    <div class="position-absolute w-100 h-100" style="top:0;left:0;z-index:1;background:linear-gradient(105deg,rgba(10,15,30,0.88) 40%,rgba(10,15,30,0.45) 100%);"></div>
+
+    <!-- Content -->
+    <div class="container position-relative py-5" style="z-index:2;min-height:460px;display:flex;align-items:center;">
+        <div style="max-width:480px;">
+            <span class="badge bg-primary text-white px-3 py-2 mb-3 rounded-2 fw-medium" style="font-size:12px;letter-spacing:.5px;">
                 New Arrivals
             </span>
-            <h1 class="fw-bold text-white lh-sm mb-2" style="font-size: clamp(2rem, 5vw, 3.2rem);">
+            <h1 class="fw-bold text-white lh-sm mb-2" style="font-size:clamp(2rem,5vw,3.2rem);">
                 Easy Shopping
                 <span class="d-block text-primary">A.R.S</span>
             </h1>
-            <p class="text-white mb-4" style="opacity:.8; max-width: 320px; font-size:15px;">
+            <p class="text-white mb-4" style="opacity:.8;max-width:320px;font-size:15px;">
                 Discover amazing deals on thousands of products
             </p>
             <a href="shop.php" class="btn btn-primary d-inline-flex align-items-center gap-2 fw-semibold px-4 py-2 rounded-2">
                 Shop Now
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </a>
+
+            <!-- Carousel Indicators -->
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="hero-dot active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" class="hero-dot" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" class="hero-dot" aria-label="Slide 3"></button>
+            </div>
         </div>
     </div>
+
 </section>
 
 <!-- Features Bar -->

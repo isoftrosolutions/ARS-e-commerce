@@ -484,32 +484,39 @@ body {
    Homepage Styles
    ================================ */
 
-/* Hero Section */
-.hero-section {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-    min-height: 420px;
-    display: flex;
-    align-items: center;
-    padding: 4rem 0;
-}
-
-.hero-bg {
-    position: absolute;
-    inset: 0;
-    background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200');
+/* Hero Carousel Slide */
+.hero-slide {
+    width: 100%;
+    height: 460px;
     background-size: cover;
-    background-position: center right;
-    opacity: 0.2;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: transform 8s ease;
 }
 
-.hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(105deg, rgba(15,23,42,0.97) 40%, rgba(15,23,42,0.4) 100%);
+.carousel-item.active .hero-slide {
+    transform: scale(1.04);
+}
+
+/* Dot indicators */
+.hero-dot {
+    width: 28px;
+    height: 4px;
+    border-radius: 2px;
+    border: none;
+    background: rgba(255,255,255,0.35);
+    padding: 0;
+    transition: background .3s, width .3s;
+    cursor: pointer;
+}
+
+.hero-dot.active {
+    background: var(--ars-primary, #ea580c);
+    width: 44px;
 }
 
 @media (max-width: 767.98px) {
-    .hero-section { min-height: 320px; padding: 3rem 0; }
+    .hero-slide { height: 340px; }
 }
 
 .animate-bounce-in {
