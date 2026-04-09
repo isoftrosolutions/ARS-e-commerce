@@ -2,15 +2,12 @@
 // config/db.php
 require_once __DIR__ . '/env.php';
 
-
-$host = 'localhost';
-$dbname = 'ektamultp_ars-ecommerce';
-$username = 'ektamultp_ars';
-$password = '123inktry@#$';
-
-$db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
+    $pdo = new PDO(
+        "mysql:host=" . env('DB_HOST', 'localhost') . ";dbname=" . env('DB_NAME', 'ars_ecommerce') . ";charset=utf8mb4",
+        env('DB_USER', 'root'),
+        env('DB_PASSWORD', '')
+    );
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -23,7 +20,7 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.use_only_cookies', 1);
     ini_set('session.cookie_samesite', 'Strict');
     session_start();
-    
+
     if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > env('SESSION_LIFETIME', 7200))) {
         session_unset();
         session_destroy();
@@ -33,7 +30,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 define('SITE_NAME', env('SITE_NAME', 'ARS Shop'));
-define('SITE_URL', env('SITE_URL', 'http://localhost/ARS'));
+define('SITE_URL', env('SITE_URL', 'https://easyshoppingars.com'));
 define('CURRENCY', env('CURRENCY', 'Rs. '));
 define('UPLOAD_DIR', env('UPLOAD_DIR', 'uploads/'));
 define('FREE_SHIPPING_THRESHOLD', (float)env('FREE_SHIPPING_THRESHOLD', 1000));
