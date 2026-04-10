@@ -16,7 +16,7 @@ $page_schema = '<script type="application/ld+json">
         {
             "@type": "Question",
             "name": "What is your return policy?",
-            "acceptedAnswer": {"@type": "Answer", "text": "We offer a 7-day return policy for unused and undamaged items in their original packaging."}
+            "acceptedAnswer": {"@type": "Answer", "text": "We offer a 5-day return policy for unused and undamaged items in their original packaging."}
         },
         {
             "@type": "Question",
@@ -78,7 +78,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                         </h2>
                         <div id="order2" class="accordion-collapse collapse" data-bs-parent="#accordionOrders">
                             <div class="accordion-body text-muted">
-                                We offer a 7-day return policy for unused and undamaged items in their original packaging. Please visit our <a href="shipping.php">Shipping & Returns</a> page for full details.
+                                We offer a 5-day return policy for unused and undamaged items in their original packaging. Please visit our <a href="shipping.php">Shipping & Returns</a> page for full details.
                             </div>
                         </div>
                     </div>

@@ -39,12 +39,11 @@ function validate_csrf($token = null): bool {
 function require_csrf(): void {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!validate_csrf()) {
-            http_response_code(403);
-            if (isset($_SESSION['user_id'])) {
-                redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', 'Invalid or expired security token. Please try again.', 'danger');
-            } else {
-                die('Security validation failed. Please refresh the page and try again.');
-            }
+            // Regenerate a fresh token so the redirected page works correctly
+            unset($_SESSION['csrf_token']);
+            unset($_SESSION['csrf_token_time']);
+            $referer = $_SERVER['HTTP_REFERER'] ?? 'index.php';
+            redirect($referer, 'Your session expired. Please try again.', 'danger');
             exit;
         }
         unset($_SESSION['csrf_token']);

@@ -77,7 +77,8 @@ img { display: block; }
   position: relative;
   height: 100vh; min-height: 620px;
   display: flex; align-items: center;
-  overflow: hidden; background: var(--void);
+  overflow: hidden;
+  background: url('assets/hero background.png') center center / cover no-repeat;
 }
 #hero-canvas {
   position: absolute; inset: 0;
@@ -861,7 +862,7 @@ img { display: block; }
         <div class="stat-lbl">Customers</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-num">7</div>
+        <div class="stat-num">5</div>
         <div class="stat-lbl">Day Returns</div>
       </div>
       <div class="stat-cell">

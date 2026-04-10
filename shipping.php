@@ -44,7 +44,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                         <p>If you are not entirely satisfied with your purchase, we're here to help.</p>
                         <h3 class="h6 fw-bold mt-4 mb-2">Returns</h3>
                         <ul>
-                            <li>You have <strong>7 calendar days</strong> to return an item from the date you received it.</li>
+                            <li>You have <strong>5 calendar days</strong> to return an item from the date you received it.</li>
                             <li>To be eligible for a return, your item must be unused and in the same condition that you received it.</li>
                             <li>Your item must be in the original packaging.</li>
                             <li>Your item needs to have the receipt or proof of purchase.</li>
