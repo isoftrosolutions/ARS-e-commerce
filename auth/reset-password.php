@@ -16,17 +16,17 @@ if (empty($token)) {
     $error = "Invalid reset link format.";
 } else {
     try {
-        $stmt = $pdo->prepare("SELECT id, full_name, email, reset_token FROM users WHERE reset_expires > NOW() LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, full_name, email, reset_token FROM users WHERE reset_expires > NOW() AND reset_token IS NOT NULL");
         $stmt->execute();
         $users = $stmt->fetchAll();
-        
+
         foreach ($users as $user) {
             if ($user['reset_token'] && password_verify($token, $user['reset_token'])) {
                 $userId = $user['id'];
                 break;
             }
         }
-        
+
         if (!$userId) {
             $error = "This reset link has expired or is invalid. Please request a new one.";
         }
@@ -81,9 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId) {
                 } else {
                     $pdo->commit();
                     $success = true;
-                    
-                    // Invalidate all other sessions for this user (security hardening)
-                    invalidate_other_sessions($pdo, $userId);
                 }
             }
         } catch (PDOException $e) {
