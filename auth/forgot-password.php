@@ -25,26 +25,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── STEP 1: Request OTP ──────────────────────────────────────
     if ($action === 'request') {
-        $emailOrMobile = trim($_POST['email_or_mobile'] ?? '');
+        $email = trim($_POST['email'] ?? '');
 
-        if (empty($emailOrMobile)) {
-            $error = "Please enter your email or mobile number.";
+        if (empty($email)) {
+            $error = "Please enter your email address.";
+        } elseif (!validate_email($email)) {
+            $error = "Please enter a valid email address.";
         } else {
             try {
                 $stmt = $pdo->prepare(
-                    "SELECT id, full_name, email, mobile FROM users WHERE mobile = ? OR email = ?"
+                    "SELECT id, full_name, email, mobile FROM users WHERE email = ?"
                 );
-                $stmt->execute([$emailOrMobile, $emailOrMobile]);
+                $stmt->execute([$email]);
                 $user = $stmt->fetch();
 
                 if ($user) {
-                    // Rate limit: 1 OTP per 2 minutes
-                    // An OTP sent <2 min ago still has >8 min left on its 10-min window
+                    // Rate limit: at most 1 OTP per 2 minutes using otp_issued_at timestamp
                     $rateStmt = $pdo->prepare(
                         "SELECT 1 FROM users
                          WHERE id = ?
-                           AND reset_token IS NOT NULL
-                           AND reset_expires > DATE_ADD(NOW(), INTERVAL 8 MINUTE)"
+                           AND otp_issued_at IS NOT NULL
+                           AND otp_issued_at > DATE_SUB(NOW(), INTERVAL 2 MINUTE)"
                     );
                     $rateStmt->execute([$user['id']]);
 
@@ -58,20 +59,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         $pdo->prepare(
                             "UPDATE users
-                             SET reset_token = ?, reset_expires = ?, otp_attempts = 0
+                             SET reset_token = ?, reset_expires = ?,
+                                 otp_attempts = 0, otp_issued_at = NOW()
                              WHERE id = ?"
                         )->execute([$otpHash, $otpExpires, $user['id']]);
 
-                        send_otp_email($user['email'], $user['full_name'], $otp);
+                        $emailSent = send_otp_email($user['email'], $user['full_name'], $otp);
 
-                        $_SESSION['otp_user_id']        = $user['id'];
-                        $_SESSION['otp_sent_at']        = time();
-                        $_SESSION['otp_masked_contact'] = mask_email($user['email']);
+                        if ($emailSent) {
+                            $_SESSION['otp_user_id']        = $user['id'];
+                            $_SESSION['otp_sent_at']        = time();
+                            $_SESSION['otp_masked_contact'] = mask_email($user['email']);
+                        } else {
+                            // Roll back the token so the user can retry
+                            $pdo->prepare(
+                                "UPDATE users SET reset_token = NULL, reset_expires = NULL,
+                                                 otp_issued_at = NULL WHERE id = ?"
+                            )->execute([$user['id']]);
+                            $error = "We couldn't send the OTP email. Please check your address or try again later.";
+                        }
                     }
                 }
 
                 // Always move to verify step — don't reveal if account exists
-                $step = 'verify';
+                // (but only if no email error was set above)
+                if (!$error) {
+                    $step = 'verify';
+                }
 
             } catch (PDOException $e) {
                 error_log("OTP request error: " . $e->getMessage());
@@ -127,7 +141,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = "Incorrect OTP. " . $remaining . " attempt" . ($remaining === 1 ? '' : 's') . " remaining.";
 
                 } else {
-                    // OTP correct — mark verified in session, redirect to set new password
+                    // OTP correct — clear token immediately to prevent reuse race condition,
+                    // then mark verified in session and redirect to set new password
+                    $pdo->prepare(
+                        "UPDATE users SET reset_token = NULL, reset_expires = NULL,
+                                         otp_attempts = 0, otp_issued_at = NULL WHERE id = ?"
+                    )->execute([$userId]);
                     unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'], $_SESSION['otp_masked_contact']);
                     $_SESSION['otp_reset_user_id'] = $userId;
                     $_SESSION['otp_reset_verified'] = true;
@@ -361,13 +380,17 @@ $page_title    = "Reset Password";
             animation: fadeUp .5s .4s both;
         }
         .otp-box {
-            flex: 1; aspect-ratio: 1;
+            flex: 1;
+            height: clamp(48px, 13vw, 72px); /* explicit height — NO aspect-ratio */
+            min-width: 0;                    /* allow shrink inside flex */
             border: 1.5px solid var(--border); border-radius: 10px;
             background: #fff; outline: none;
-            font-family: var(--font-d); font-size: 1.6rem; font-weight: 700;
+            font-family: var(--font-d); font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 700;
             color: var(--ink); text-align: center;
             transition: border-color .2s, box-shadow .2s;
             -moz-appearance: textfield;
+            /* prevent iOS zoom on focus (font must be ≥ 16px equivalent) */
+            touch-action: manipulation;
         }
         .otp-box::-webkit-outer-spin-button,
         .otp-box::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -430,26 +453,52 @@ $page_title    = "Reset Password";
         }
         .back-link:hover { color: var(--ink) !important; text-decoration: none !important; }
 
-        /* ── MOBILE ── */
+        /* ── MOBILE ≤ 820px ── */
         @media (max-width: 820px) {
             html, body { overflow: auto; }
             .auth-wrap { flex-direction: column; height: auto; min-height: 100vh; }
             .panel-left {
                 width: 100%; flex-direction: row; align-items: center;
                 justify-content: space-between; padding: 1.25rem 1.5rem;
-                animation: none; min-height: 70px;
+                animation: none; min-height: 70px; flex-shrink: 0;
             }
             .panel-left::after { display: none; }
             .panel-tagline, .security-list, .ghost-text, .orb { display: none; }
             .brand { margin: 0; }
-            .panel-right { flex: 1; align-items: flex-start; animation: none; padding-bottom: 2rem; }
-            .form-wrap { padding: 2rem 1.5rem 1.5rem; max-width: 100%; }
+            .panel-right {
+                flex: 1; animation: none; padding-bottom: 2rem;
+                align-items: flex-start;
+                /* ensure it fills and scrolls if content overflows */
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .form-wrap { padding: 2rem 1.5rem 2rem; max-width: 100%; width: 100%; }
             .form-header h1 { font-size: 2.5rem; }
             .panel-left .back-link-mobile {
                 display: flex; align-items: center; gap: .35rem;
                 color: rgba(255,255,255,.45); font-size: .78rem; text-decoration: none;
             }
+
+            /* OTP-specific mobile tweaks */
+            .otp-boxes { gap: .45rem; margin-bottom: 1.5rem; }
+            .otp-label { margin-bottom: .6rem; }
+            .otp-sent-to { font-size: .78rem; margin-bottom: 1.25rem; }
+            .otp-timer {
+                flex-wrap: wrap; gap: .4rem;
+                justify-content: space-between;
+                margin-bottom: 1.25rem;
+            }
         }
+
+        /* ── EXTRA-SMALL ≤ 400px (small Android / iPhone SE) ── */
+        @media (max-width: 400px) {
+            .form-wrap { padding: 1.5rem 1rem 2rem; }
+            .form-header h1 { font-size: 2rem; }
+            .otp-boxes { gap: .3rem; }
+            .otp-box { border-radius: 8px; }
+            .btn-submit { padding: .875rem 1rem; font-size: .88rem; }
+        }
+
         @media (min-width: 821px) { .back-link-mobile { display: none; } }
     </style>
 </head>
@@ -487,7 +536,7 @@ $page_title    = "Reset Password";
             </div>
             <div class="sec-item">
                 <div class="sec-icon"><i class="bi bi-envelope-lock"></i></div>
-                <span>Sent to your registered email</span>
+                <span>Sent to your registered email address</span>
             </div>
             <div class="sec-item">
                 <div class="sec-icon"><i class="bi bi-arrow-repeat"></i></div>
@@ -512,7 +561,7 @@ $page_title    = "Reset Password";
 
             <div class="form-header">
                 <h1>Reset<br>password.</h1>
-                <p>Enter your email or mobile to receive a one-time code.</p>
+                <p>Enter your email address to receive a one-time code.</p>
             </div>
 
             <form action="forgot-password.php" method="POST" id="requestForm" autocomplete="on">
@@ -520,14 +569,14 @@ $page_title    = "Reset Password";
                 <input type="hidden" name="action" value="request">
 
                 <div class="field">
-                    <input type="text" name="email_or_mobile" id="email_or_mobile"
-                           placeholder=" " required autocomplete="username" inputmode="text"
-                           value="<?= htmlspecialchars($_POST['email_or_mobile'] ?? '') ?>">
-                    <label for="email_or_mobile">Email or mobile number</label>
+                    <input type="email" name="email" id="email"
+                           placeholder=" " required autocomplete="email"
+                           value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+                    <label for="email">Email address</label>
                     <div class="field-line"></div>
                     <div class="field-hint">
                         <i class="bi bi-info-circle"></i>
-                        Use the email or number linked to your account
+                        Use the email linked to your account
                     </div>
                 </div>
 
@@ -576,17 +625,20 @@ $page_title    = "Reset Password";
 
                 <div class="otp-timer">
                     <span class="timer-text">Code expires in <span id="countdown">10:00</span></span>
-                    <form action="forgot-password.php" method="POST" style="display:inline;" id="resendForm">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="resend">
-                        <button type="submit" class="resend-link" id="resendBtn" disabled>Resend code</button>
-                    </form>
+                    <button type="button" class="resend-link" id="resendBtn" disabled
+                            onclick="document.getElementById('resendForm').submit();">Resend code</button>
                 </div>
 
                 <button type="submit" class="btn-submit" id="verifyBtn" disabled>
                     <span>Verify OTP</span>
                     <i class="bi bi-arrow-right"></i>
                 </button>
+            </form>
+
+            <!-- Resend is a SEPARATE form — nested forms are invalid HTML -->
+            <form action="forgot-password.php" method="POST" id="resendForm" style="display:none;">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="resend">
             </form>
 
             <div class="form-footer" style="margin-top:1.5rem;">

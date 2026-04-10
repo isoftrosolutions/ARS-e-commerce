@@ -52,7 +52,8 @@ ALTER TABLE users
     ADD COLUMN IF NOT EXISTS reset_expires        DATETIME      NULL          AFTER reset_token,
     ADD COLUMN IF NOT EXISTS reset_token_used_at  DATETIME      NULL          AFTER reset_expires,
     ADD COLUMN IF NOT EXISTS otp_attempts         TINYINT       NOT NULL DEFAULT 0 AFTER reset_token_used_at,
-    ADD COLUMN IF NOT EXISTS email_verified_at    TIMESTAMP     NULL          AFTER otp_attempts,
+    ADD COLUMN IF NOT EXISTS otp_issued_at        DATETIME      NULL          AFTER otp_attempts,
+    ADD COLUMN IF NOT EXISTS email_verified_at    TIMESTAMP     NULL          AFTER otp_issued_at,
     ADD COLUMN IF NOT EXISTS verification_token   VARCHAR(255)  NULL          AFTER email_verified_at;
 
 
@@ -64,14 +65,16 @@ ALTER TABLE users
 UPDATE users
 SET reset_token    = NULL,
     reset_expires  = NULL,
-    otp_attempts   = 0
+    otp_attempts   = 0,
+    otp_issued_at  = NULL
 WHERE reset_expires < NOW()
   AND reset_token IS NOT NULL;
 
 -- Clear tokens that were already consumed (used_at is set)
 UPDATE users
 SET reset_token   = NULL,
-    reset_expires = NULL
+    reset_expires = NULL,
+    otp_issued_at = NULL
 WHERE reset_token_used_at IS NOT NULL
   AND reset_token IS NOT NULL;
 
@@ -96,9 +99,9 @@ FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = 'ars_ecommerce'
   AND TABLE_NAME   = 'users'
   AND COLUMN_NAME IN ('reset_token','reset_expires','reset_token_used_at',
-                      'otp_attempts','email_verified_at','verification_token')
+                      'otp_attempts','otp_issued_at','email_verified_at','verification_token')
 ORDER BY ORDINAL_POSITION;
--- Expected: 6 rows
+-- Expected: 7 rows
 
 -- No stale tokens remain?
 SELECT COUNT(*) AS stale_after_migration
@@ -125,6 +128,7 @@ ALTER TABLE users
     DROP COLUMN IF EXISTS reset_expires,
     DROP COLUMN IF EXISTS reset_token_used_at,
     DROP COLUMN IF EXISTS otp_attempts,
+    DROP COLUMN IF EXISTS otp_issued_at,
     DROP COLUMN IF EXISTS email_verified_at,
     DROP COLUMN IF EXISTS verification_token;
 */

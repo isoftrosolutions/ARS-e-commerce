@@ -5,7 +5,17 @@
       "WebFetch(domain:easyshoppingars.com)",
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Read(//c/wamp//**)",
+      "Read(//c/wamp/bin/mysql//**)",
+      "Bash(/c/wamp/bin/mysql/mysql5.5.8/bin/mysql:*)",
+      "Bash(/c/php/php.exe:*)",
+      "Bash(\"/c/php/php.exe\" -l \"C:/Apache24/htdocs/ARS/auth/login.php\")",
+      "Bash(\"/c/php/php.exe\" -l \"C:/Apache24/htdocs/ARS/auth/forgot-password.php\")",
+      "Bash(\"/c/php/php.exe\" -l \"C:/Apache24/htdocs/ARS/auth/reset-password.php\")",
+      "Bash(\"/c/php/php.exe\" -l \"C:/Apache24/htdocs/ARS/includes/security.php\")",
+      "Bash(\"/c/php/php.exe\" -l \"C:/Apache24/htdocs/ARS/index.php\")",
+      "Bash(powershell:*)"
     ]
   }
 }

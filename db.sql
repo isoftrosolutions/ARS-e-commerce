@@ -1,3 +1,21 @@
+/*
+SQLyog Community v13.3.0 (64 bit)
+MySQL - 12.0.2-MariaDB : Database - ars_ecommerce
+*********************************************************************
+*/
+
+/*!40101 SET NAMES utf8 */;
+
+/*!40101 SET SQL_MODE=''*/;
+
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/`ars_ecommerce` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci */;
+
+USE `ars_ecommerce`;
+
 /*Table structure for table `categories` */
 
 DROP TABLE IF EXISTS `categories`;
@@ -359,17 +377,24 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `address` text DEFAULT NULL,
   `role` enum('admin','customer') DEFAULT 'customer',
+  `reset_token` varchar(255) DEFAULT NULL,
+  `reset_expires` datetime DEFAULT NULL,
+  `reset_token_used_at` datetime DEFAULT NULL,
+  `otp_attempts` tinyint(4) NOT NULL DEFAULT 0,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `verification_token` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `mobile` (`mobile`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_users_reset_expires` (`reset_expires`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 /*Data for the table `users` */
 
-insert  into `users`(`id`,`full_name`,`email`,`mobile`,`password`,`address`,`role`,`created_at`) values 
-(1,'Admin User','admin@ars.com','9800000000','$2y$12$HyLE.XCEYhATd.NTO6HYyehUPUEHBHw.F9NZEgH8njv6/Vb.wxvv2',NULL,'admin','2026-04-07 22:33:24'),
-(2,'Nepal Cyber Firm','nepalcyberfirm@gmail.com','9811144402','$2y$12$DuykQQSpV8fb2RwfFbizXe3WuqMwJF61aOQA5EGan9GSTA/Tvmeom','Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300','customer','2026-04-08 09:39:16');
+insert  into `users`(`id`,`full_name`,`email`,`mobile`,`password`,`address`,`role`,`reset_token`,`reset_expires`,`reset_token_used_at`,`otp_attempts`,`email_verified_at`,`verification_token`,`created_at`) values 
+(1,'Admin User','admin@ars.com','9800000000','$2y$12$HyLE.XCEYhATd.NTO6HYyehUPUEHBHw.F9NZEgH8njv6/Vb.wxvv2',NULL,'admin',NULL,NULL,NULL,0,NULL,NULL,'2026-04-07 22:33:24'),
+(2,'Nepal Cyber Firm','nepalcyberfirm@gmail.com','9811144402','$2y$12$DuykQQSpV8fb2RwfFbizXe3WuqMwJF61aOQA5EGan9GSTA/Tvmeom','Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300','customer',NULL,NULL,NULL,0,NULL,NULL,'2026-04-08 09:39:16');
 
 /*Table structure for table `wishlist` */
 

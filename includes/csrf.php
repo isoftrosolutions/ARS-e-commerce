@@ -39,14 +39,20 @@ function validate_csrf($token = null): bool {
 function require_csrf(): void {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!validate_csrf()) {
-            // Regenerate a fresh token so the redirected page works correctly
-            unset($_SESSION['csrf_token']);
-            unset($_SESSION['csrf_token_time']);
-            $referer = $_SERVER['HTTP_REFERER'] ?? $_SERVER['REQUEST_URI'];
-            redirect($referer, 'Your session expired. Please try again.', 'danger');
+            // Regenerate a fresh token so the next page load gets a clean one
+            unset($_SESSION['csrf_token'], $_SESSION['csrf_token_time']);
+            // Always redirect to a known-safe page — never loop back via $referer
+            // because that would re-POST the stale CSRF token infinitely.
+            $safe = $_SERVER['HTTP_REFERER'] ?? '';
+            // Only use referer if it is a GET URL on the same origin (no POST loops)
+            $origin = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+            if ($safe === '' || strpos($safe, $origin) !== 0) {
+                $safe = $origin . '/ARS/auth/login.php';
+            }
+            redirect($safe, 'Your session expired. Please try again.', 'danger');
             exit;
         }
-        unset($_SESSION['csrf_token']);
-        unset($_SESSION['csrf_token_time']);
+        // Consume the token only on a valid request so it cannot be replayed
+        unset($_SESSION['csrf_token'], $_SESSION['csrf_token_time']);
     }
 }

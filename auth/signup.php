@@ -38,8 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($password)) {
         $field_errors['password'] = 'Password is required';
-    } elseif (strlen($password) < 8) {
-        $field_errors['password'] = 'Password must be at least 8 characters long';
+    } else {
+        $pwErrors = validate_password_strength($password);
+        if (!empty($pwErrors)) {
+            $field_errors['password'] = implode('; ', $pwErrors);
+        }
     }
 
     if ($password !== $confirm_password) {
