@@ -6,9 +6,9 @@ if (is_logged_in()) {
 }
 
 $token = $_GET['token'] ?? '';
-?>
 $success = false;
 $userId = null;
+$error = null;
 
 if (empty($token)) {
     $error = "Invalid reset link.";
@@ -16,7 +16,7 @@ if (empty($token)) {
     $error = "Invalid reset link format.";
 } else {
     try {
-        $stmt = $pdo->prepare("SELECT id, full_name, email FROM users WHERE reset_expires > NOW() LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, full_name, email, reset_token FROM users WHERE reset_expires > NOW() LIMIT 1");
         $stmt->execute();
         $users = $stmt->fetchAll();
         

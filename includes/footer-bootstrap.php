@@ -51,9 +51,9 @@
                             <ul class="list-unstyled mb-0">
                                 <li class="mb-3">
                                     <div class="small text-muted mb-1">Head Office</div>
-                                    <a href="tel:+9779820210361" class="text-decoration-none text-light hover-primary d-flex align-items-center gap-2">
+                                    <a href="tel:+9779812231441" class="text-decoration-none text-light hover-primary d-flex align-items-center gap-2">
                                         <i class="bi bi-telephone-fill text-primary"></i>
-                                        +977 9820210361
+                                        +977 9812231441
                                     </a>
                                 </li>
                                 <li class="mb-3">

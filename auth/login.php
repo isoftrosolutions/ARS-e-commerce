@@ -10,7 +10,7 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
 
-    $mobile = filter_input(INPUT_POST, 'mobile', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $mobile = trim($_POST['mobile'] ?? '');
     $password = $_POST['password'] ?? '';
 
     if (empty($mobile) || empty($password)) {
