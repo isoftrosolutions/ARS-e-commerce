@@ -695,7 +695,7 @@ img { display: block; }
         <div class="feat-ico" style="background:rgba(249,115,22,0.1);color:var(--ember);"><i class="bi bi-arrow-repeat"></i></div>
         <div>
           <div class="feat-title">Easy Returns</div>
-          <div class="feat-sub">7-Day Replacement</div>
+          <div class="feat-sub">5-Day Replacement</div>
         </div>
       </div>
       <div class="feat-item reveal d3">
