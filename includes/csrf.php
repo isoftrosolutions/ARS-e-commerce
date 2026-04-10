@@ -42,7 +42,7 @@ function require_csrf(): void {
             // Regenerate a fresh token so the redirected page works correctly
             unset($_SESSION['csrf_token']);
             unset($_SESSION['csrf_token_time']);
-            $referer = $_SERVER['HTTP_REFERER'] ?? 'index.php';
+            $referer = $_SERVER['HTTP_REFERER'] ?? $_SERVER['REQUEST_URI'];
             redirect($referer, 'Your session expired. Please try again.', 'danger');
             exit;
         }

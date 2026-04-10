@@ -5,7 +5,6 @@ if (is_logged_in()) {
     redirect('../index.php');
 }
 
-$ip = get_client_ip();
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -180,8 +179,8 @@ $page_title = "Login";
                                 </div>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" name="password" id="password" required placeholder="Enter password" 
-                                           class="form-control border-end-0" minlength="6">
+                                    <input type="password" name="password" id="password" required placeholder="Enter password"
+                                           class="form-control border-end-0" minlength="8">
                                     <button class="btn border border-start-0" type="button" id="togglePassword">
                                         <i class="bi bi-eye"></i>
                                     </button>
@@ -197,8 +196,8 @@ $page_title = "Login";
                                 </div>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary w-100" <?= $lockout_remaining > 0 ? 'disabled' : '' ?>>
-                                <?= $lockout_remaining > 0 ? 'Please wait...' : '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In' ?>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                             </button>
                         </form>
                         

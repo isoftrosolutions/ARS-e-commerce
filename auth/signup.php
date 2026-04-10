@@ -5,7 +5,6 @@ if (is_logged_in()) {
     redirect('../index.php');
 }
 
-$ip = get_client_ip();
 $error = null;
 $field_errors = [];
 
