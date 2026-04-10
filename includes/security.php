@@ -14,9 +14,27 @@ function validate_email($email): bool {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
+/**
+ * Normalize a mobile number to a canonical digit-only local format.
+ * Strips all non-digits; strips Nepal +977 country code if present (13-digit E.164).
+ * Examples:
+ *   '+9779811144402' → '9811144402'
+ *   '977-981-114-4402' → '9811144402'
+ *   '9811144402'      → '9811144402'
+ */
+function normalize_mobile(string $mobile): string {
+    // Remove all non-digit characters (+, -, spaces, parentheses)
+    $digits = preg_replace('/[^0-9]/', '', $mobile);
+    // Nepal E.164: 13 digits starting with 977 → strip country code
+    if (strlen($digits) === 13 && strpos($digits, '977') === 0) {
+        $digits = substr($digits, 3);
+    }
+    return $digits;
+}
+
 function validate_mobile($mobile): bool {
-    $mobile = preg_replace('/[^0-9]/', '', $mobile);
-    return strlen($mobile) >= 9 && strlen($mobile) <= 15;
+    $normalized = normalize_mobile($mobile);
+    return strlen($normalized) >= 9 && strlen($normalized) <= 15;
 }
 
 function validate_required($data): bool {
@@ -84,74 +102,32 @@ function get_client_ip(): string {
 }
 
 function mask_email(string $email): string {
+    if (empty($email)) return '';
+    if (!str_contains($email, '@')) return $email;
     [$local, $domain] = explode('@', $email, 2);
     $visible = min(2, strlen($local));
     return substr($local, 0, $visible) . str_repeat('*', max(0, strlen($local) - $visible)) . '@' . $domain;
 }
 
 function send_otp_email(string $toEmail, string $toName, string $otp): bool {
-    $vendorBase = __DIR__ . '/../vendor/phpmailer/phpmailer';
-    require_once $vendorBase . '/PHPMailer.php';
-    require_once $vendorBase . '/SMTP.php';
-    require_once $vendorBase . '/Exception.php';
+    global $pdo;
+    require_once __DIR__ . '/classes/EmailManager.php';
+    $emailManager = new EmailManager($pdo);
+    
+    return $emailManager->sendNow($toEmail, $toName, 'otp_email', [
+        'name' => $toName,
+        'otp'  => $otp
+    ]);
+}
 
-    $config = require __DIR__ . '/../config/mail.php';
-
-    if (empty($config['username'])) {
-        error_log("OTP email skipped: SMTP not configured. OTP for {$toEmail}: {$otp}");
-        return false;
-    }
-
-    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-    try {
-        $mail->isSMTP();
-        $mail->Host       = $config['host'];
-        $mail->SMTPAuth   = true;
-        $mail->Username   = $config['username'];
-        $mail->Password   = $config['password'];
-        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = $config['port'];
-        $mail->CharSet    = 'UTF-8';
-
-        $mail->setFrom($config['from_email'], $config['from_name']);
-        $mail->addAddress($toEmail, $toName);
-
-        $mail->isHTML(true);
-        $mail->Subject = 'Your ARS Shop Password Reset OTP';
-        $mail->Body    = "
-<!DOCTYPE html>
-<html>
-<head><meta charset='UTF-8'></head>
-<body style='margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;'>
-<table width='100%' cellpadding='0' cellspacing='0' style='background:#f5f5f5;padding:40px 0;'>
-  <tr><td align='center'>
-    <table width='480' cellpadding='0' cellspacing='0' style='background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);'>
-      <tr><td style='background:#130c06;padding:32px 40px;text-align:center;'>
-        <span style='font-size:24px;font-weight:700;color:#fff;letter-spacing:.02em;'>ARS<span style='color:#ea580c;'>SHOP</span></span>
-      </td></tr>
-      <tr><td style='padding:40px;text-align:center;'>
-        <p style='margin:0 0 8px;font-size:14px;color:#6b5c4e;text-transform:uppercase;letter-spacing:.1em;'>Password Reset</p>
-        <h1 style='margin:0 0 24px;font-size:28px;color:#1a0e05;'>Your OTP Code</h1>
-        <p style='margin:0 0 32px;font-size:15px;color:#6b5c4e;line-height:1.6;'>Hi {$toName}, use the code below to reset your password. It expires in <strong>10 minutes</strong>.</p>
-        <div style='display:inline-block;background:#fdfaf7;border:2px solid #ea580c;border-radius:12px;padding:20px 48px;margin-bottom:32px;'>
-          <span style='font-size:40px;font-weight:700;letter-spacing:.25em;color:#130c06;'>{$otp}</span>
-        </div>
-        <p style='margin:0;font-size:13px;color:#a89688;'>If you did not request this, you can safely ignore this email.</p>
-      </td></tr>
-      <tr><td style='background:#fdfaf7;padding:20px 40px;text-align:center;border-top:1px solid #e4d9d0;'>
-        <p style='margin:0;font-size:12px;color:#a89688;'>Easy Shopping A.R.S &mdash; Nepal</p>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>";
-        $mail->AltBody = "Your ARS Shop OTP: {$otp} (expires in 10 minutes)";
-
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        error_log("OTP email failed to {$toEmail}: " . $e->getMessage());
-        return false;
-    }
+function send_password_reset_notification(string $toEmail, string $toName): bool {
+    global $pdo;
+    require_once __DIR__ . '/classes/EmailManager.php';
+    $emailManager = new EmailManager($pdo);
+    
+    // Use queue instead of sendNow for non-critical notification
+    return $emailManager->queue($toEmail, $toName, 'password_reset_success', [
+        'name' => $toName,
+        'date' => date('Y-m-d H:i:s')
+    ]);
 }

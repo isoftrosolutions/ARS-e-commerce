@@ -12,11 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
 
     $full_name        = trim($_POST['full_name'] ?? '');
-    $mobile           = trim($_POST['mobile'] ?? '');
-    $email            = trim($_POST['email'] ?? '');
+    $mobile           = normalize_mobile(trim($_POST['mobile'] ?? ''));
+    $email            = strtolower(trim($_POST['email'] ?? ''));
     $address          = trim($_POST['address'] ?? '');
     $password         = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
+    $terms_agreed     = !empty($_POST['terms']);
 
     if (empty($full_name)) {
         $field_errors['full_name'] = 'Full name is required';
@@ -26,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($mobile)) {
         $field_errors['mobile'] = 'Mobile number is required';
-    } elseif (!validate_mobile($mobile)) {
+    } elseif (!validate_mobile($_POST['mobile'] ?? '')) {
         $field_errors['mobile'] = 'Invalid mobile number format';
     }
 
@@ -36,12 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $field_errors['email'] = 'Invalid email address';
     }
 
+    if (!$terms_agreed) {
+        $field_errors['terms'] = 'You must agree to the Terms of Service to create an account';
+    }
+
     if (empty($password)) {
         $field_errors['password'] = 'Password is required';
     } else {
-        $pwErrors = validate_password_strength($password);
-        if (!empty($pwErrors)) {
-            $field_errors['password'] = implode('; ', $pwErrors);
+        // Enforce same strength rules as password reset
+        $strengthErrors = validate_password_strength($password);
+        if (!empty($strengthErrors)) {
+            $field_errors['password'] = $strengthErrors[0];
         }
     }
 
@@ -64,6 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $pdo->prepare("INSERT INTO users (full_name, mobile, email, address, password, role) VALUES (?, ?, ?, ?, ?, 'customer')");
                 $stmt->execute([$full_name, $mobile, $email, $address, $hashedPassword]);
+
+                csrf_rotate(); // Invalidate token after successful account creation
 
                 try {
                     require_once __DIR__ . '/../includes/classes/EmailManager.php';
@@ -716,7 +724,7 @@ $page_title = "Create Account";
                     <div class="field <?= isset($field_errors['password']) ? 'is-invalid' : '' ?>" style="animation: fadeUp .5s .5s both;">
                         <input type="password" name="password" id="password"
                                placeholder=" "
-                               required minlength="8" autocomplete="new-password">
+                               required autocomplete="new-password">
                         <label for="password">Password</label>
                         <div class="field-line"></div>
                         <button type="button" class="toggle-pw" id="togglePassword" tabindex="-1">
@@ -725,15 +733,13 @@ $page_title = "Create Account";
                         <?php if (isset($field_errors['password'])): ?>
                             <div class="field-error"><i class="bi bi-exclamation-circle"></i><?= htmlspecialchars($field_errors['password']) ?></div>
                         <?php endif; ?>
-                        <div class="pw-strength" id="pwStrength"><div class="pw-strength-bar" id="pwStrengthBar"></div></div>
-                        <div class="pw-strength-label" id="pwStrengthLabel"></div>
                     </div>
 
                     <!-- Confirm Password -->
                     <div class="field <?= isset($field_errors['confirm_password']) ? 'is-invalid' : '' ?>" style="animation: fadeUp .5s .55s both;">
                         <input type="password" name="confirm_password" id="confirm_password"
                                placeholder=" "
-                               required minlength="8" autocomplete="new-password">
+                               required autocomplete="new-password">
                         <label for="confirm_password">Confirm password</label>
                         <div class="field-line"></div>
                         <button type="button" class="toggle-pw" id="toggleConfirmPassword" tabindex="-1">
@@ -761,9 +767,12 @@ $page_title = "Create Account";
 
                 <div class="terms-row">
                     <label class="terms-check">
-                        <input type="checkbox" required id="terms">
+                        <input type="checkbox" name="terms" id="terms" <?= !empty($_POST) && empty($field_errors['terms']) ? 'checked' : '' ?>>
                         <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
                     </label>
+                    <?php if (isset($field_errors['terms'])): ?>
+                        <div class="field-error" style="margin-top:.45rem;"><i class="bi bi-exclamation-circle"></i><?= htmlspecialchars($field_errors['terms']) ?></div>
+                    <?php endif; ?>
                 </div>
 
                 <button type="submit" class="btn-submit">
@@ -798,46 +807,6 @@ $page_title = "Create Account";
     }
     setupToggle('togglePassword', 'password');
     setupToggle('toggleConfirmPassword', 'confirm_password');
-
-    // Password strength meter
-    const pwInput    = document.getElementById('password');
-    const strengthEl = document.getElementById('pwStrength');
-    const barEl      = document.getElementById('pwStrengthBar');
-    const labelEl    = document.getElementById('pwStrengthLabel');
-
-    function getStrength(pw) {
-        let score = 0;
-        if (pw.length >= 8)  score++;
-        if (pw.length >= 12) score++;
-        if (/[A-Z]/.test(pw)) score++;
-        if (/[0-9]/.test(pw)) score++;
-        if (/[^A-Za-z0-9]/.test(pw)) score++;
-        return score;
-    }
-
-    pwInput && pwInput.addEventListener('input', () => {
-        const pw = pwInput.value;
-        if (!pw) {
-            strengthEl.classList.remove('visible');
-            labelEl.classList.remove('visible');
-            return;
-        }
-        strengthEl.classList.add('visible');
-        labelEl.classList.add('visible');
-        const score = getStrength(pw);
-        const levels = [
-            { pct: '20%', color: '#ef4444', label: 'Very weak' },
-            { pct: '40%', color: '#f97316', label: 'Weak' },
-            { pct: '60%', color: '#eab308', label: 'Fair' },
-            { pct: '80%', color: '#22c55e', label: 'Strong' },
-            { pct: '100%',color: '#16a34a', label: 'Very strong' },
-        ];
-        const lvl = levels[Math.min(score - 1, 4)] || levels[0];
-        barEl.style.width = lvl.pct;
-        barEl.style.background = lvl.color;
-        labelEl.textContent = lvl.label;
-        labelEl.style.color = lvl.color;
-    });
 </script>
 </body>
 </html>

@@ -23,35 +23,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $action = $_POST['action'] ?? '';
 
+    // ── Resend OTP ───────────────────────────────────────────────
+    if ($action === 'resend') {
+        $email = $_SESSION['otp_requested_email'] ?? '';
+        if ($email) {
+            $action      = 'request'; // Fall through to the request handler
+            $_POST['email'] = $email;
+        } else {
+            unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'],
+                  $_SESSION['otp_masked_contact'], $_SESSION['otp_requested_email']);
+            $step  = 'request';
+            $error = "Session expired. Please start over.";
+        }
+    }
+
     // ── STEP 1: Request OTP ──────────────────────────────────────
     if ($action === 'request') {
-        $email = trim($_POST['email'] ?? '');
+        $email    = trim($_POST['email'] ?? '');
+        $isResend = (($_POST['action'] ?? '') === 'resend'); // original POST action
 
-        if (empty($email)) {
+        if (empty($email) && !$isResend) {
             $error = "Please enter your email address.";
         } elseif (!validate_email($email)) {
             $error = "Please enter a valid email address.";
         } else {
+            // Always move to verify step — don't reveal if account exists
+            $step = 'verify';
+            $_SESSION['otp_masked_contact']  = mask_email($email);
+            $_SESSION['otp_requested_email'] = $email;
+
             try {
                 $stmt = $pdo->prepare(
-                    "SELECT id, full_name, email, mobile FROM users WHERE email = ?"
+                    "SELECT id, full_name, email FROM users WHERE email = ?"
                 );
                 $stmt->execute([$email]);
                 $user = $stmt->fetch();
 
                 if ($user) {
-                    // Rate limit: at most 1 OTP per 2 minutes using otp_issued_at timestamp
+                    // Rate limit: at most 1 OTP per 2 minutes
                     $rateStmt = $pdo->prepare(
-                        "SELECT 1 FROM users
+                        "SELECT otp_issued_at FROM users
                          WHERE id = ?
                            AND otp_issued_at IS NOT NULL
                            AND otp_issued_at > DATE_SUB(NOW(), INTERVAL 2 MINUTE)"
                     );
                     $rateStmt->execute([$user['id']]);
+                    $rateRow = $rateStmt->fetch();
 
-                    if ($rateStmt->fetch()) {
-                        $error = "Please wait a moment before requesting another OTP.";
-                        $step  = 'verify';
+                    if ($rateRow) {
+                        // Too fast — restore session pointers so UI timers keep counting
+                        $_SESSION['otp_user_id'] = $user['id'];
+                        // Re-derive otp_sent_at from DB otp_issued_at so the JS
+                        // countdown stays accurate even across tabs or page reloads.
+                        if (!isset($_SESSION['otp_sent_at'])) {
+                            $issuedAt = strtotime($rateRow['otp_issued_at']);
+                            $_SESSION['otp_sent_at'] = $issuedAt ?: time();
+                        }
                     } else {
                         $otp        = sprintf('%06d', random_int(100000, 999999));
                         $otpHash    = password_hash($otp, PASSWORD_BCRYPT, ['cost' => 10]);
@@ -64,32 +91,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              WHERE id = ?"
                         )->execute([$otpHash, $otpExpires, $user['id']]);
 
-                        $emailSent = send_otp_email($user['email'], $user['full_name'], $otp);
-
-                        if ($emailSent) {
-                            $_SESSION['otp_user_id']        = $user['id'];
-                            $_SESSION['otp_sent_at']        = time();
-                            $_SESSION['otp_masked_contact'] = mask_email($user['email']);
+                        if (send_otp_email($user['email'], $user['full_name'], $otp)) {
+                            $_SESSION['otp_user_id'] = $user['id'];
+                            $_SESSION['otp_sent_at'] = time();
                         } else {
-                            // Roll back the token so the user can retry
+                            // SMTP failed — clear the OTP from DB so the user
+                            // isn't blocked by the 2-minute rate limit on retry.
                             $pdo->prepare(
-                                "UPDATE users SET reset_token = NULL, reset_expires = NULL,
-                                                 otp_issued_at = NULL WHERE id = ?"
+                                "UPDATE users
+                                 SET reset_token = NULL, reset_expires = NULL,
+                                     otp_issued_at = NULL, otp_attempts = 0
+                                 WHERE id = ?"
                             )->execute([$user['id']]);
-                            $error = "We couldn't send the OTP email. Please check your address or try again later.";
+                            // Also clear session so we go back to request step
+                            unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'],
+                                  $_SESSION['otp_masked_contact'], $_SESSION['otp_requested_email']);
+                            $error = "Unable to send verification email. Please try again later.";
+                            $step  = 'request';
                         }
                     }
+                } else {
+                    // ACCOUNT ENUMERATION PROTECTION:
+                    // Simulate delay and behave as if we sent something.
+                    usleep(random_int(300000, 700000));
+                    if (!isset($_SESSION['otp_sent_at'])) {
+                        $_SESSION['otp_sent_at'] = time();
+                    }
                 }
-
-                // Always move to verify step — don't reveal if account exists
-                // (but only if no email error was set above)
-                if (!$error) {
-                    $step = 'verify';
-                }
-
             } catch (PDOException $e) {
                 error_log("OTP request error: " . $e->getMessage());
-                $error = "Request failed. Please try again.";
+                // Silently fail to verify step (enumeration protection)
             }
         }
 
@@ -100,73 +131,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? implode('', array_map('trim', $otpDigits))
             : trim($_POST['otp_code'] ?? '');
 
-        if (!isset($_SESSION['otp_user_id'])) {
-            $step  = 'request';
-            $error = "Session expired. Please request a new OTP.";
-
-        } elseif (strlen($otp) !== 6 || !ctype_digit($otp)) {
+        if (strlen($otp) !== 6 || !ctype_digit($otp)) {
             $step  = 'verify';
             $error = "Please enter the complete 6-digit OTP.";
-
         } else {
             try {
-                $userId = (int)$_SESSION['otp_user_id'];
-                $stmt   = $pdo->prepare(
-                    "SELECT reset_token, otp_attempts
-                     FROM users
-                     WHERE id = ? AND reset_token IS NOT NULL AND reset_expires > NOW()"
-                );
-                $stmt->execute([$userId]);
-                $record = $stmt->fetch();
+                $userId = (int)($_SESSION['otp_user_id'] ?? 0);
+                $record = null;
 
-                if (!$record) {
-                    unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'], $_SESSION['otp_masked_contact']);
-                    $step  = 'request';
-                    $error = "Your OTP has expired. Please request a new one.";
-
-                } elseif ((int)$record['otp_attempts'] >= 5) {
-                    $pdo->prepare(
-                        "UPDATE users SET reset_token = NULL, reset_expires = NULL WHERE id = ?"
-                    )->execute([$userId]);
-                    unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'], $_SESSION['otp_masked_contact']);
-                    $step  = 'request';
-                    $error = "Too many incorrect attempts. Please request a new OTP.";
-
-                } elseif (!password_verify($otp, $record['reset_token'])) {
-                    $pdo->prepare(
-                        "UPDATE users SET otp_attempts = otp_attempts + 1 WHERE id = ?"
-                    )->execute([$userId]);
-                    $remaining = 5 - ((int)$record['otp_attempts'] + 1);
-                    $step  = 'verify';
-                    $error = "Incorrect OTP. " . $remaining . " attempt" . ($remaining === 1 ? '' : 's') . " remaining.";
-
+                if ($userId > 0) {
+                    $stmt = $pdo->prepare(
+                        "SELECT reset_token, otp_attempts, full_name, email
+                         FROM users
+                         WHERE id = ? AND reset_token IS NOT NULL AND reset_expires > NOW()"
+                    );
+                    $stmt->execute([$userId]);
+                    $record = $stmt->fetch();
                 } else {
-                    // OTP correct — clear token immediately to prevent reuse race condition,
-                    // then mark verified in session and redirect to set new password
-                    $pdo->prepare(
-                        "UPDATE users SET reset_token = NULL, reset_expires = NULL,
-                                         otp_attempts = 0, otp_issued_at = NULL WHERE id = ?"
-                    )->execute([$userId]);
-                    unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'], $_SESSION['otp_masked_contact']);
-                    $_SESSION['otp_reset_user_id'] = $userId;
-                    $_SESSION['otp_reset_verified'] = true;
-                    $_SESSION['otp_reset_expires']  = time() + 900; // 15 min window to set password
-                    redirect('reset-password.php');
+                    // Session expired mid-flow (session timeout cleared otp_user_id)
+                    $step  = 'request';
+                    $error = "Your session expired. Please request a new OTP.";
                 }
 
+                if ($userId > 0) {
+                    if (!$record) {
+                        // Real user but OTP expired
+                        $step  = 'request';
+                        $error = "Your code has expired. Please request a new one.";
+                    } elseif ((int)$record['otp_attempts'] >= 5) {
+                        $pdo->prepare(
+                            "UPDATE users SET reset_token = NULL, reset_expires = NULL WHERE id = ?"
+                        )->execute([$userId]);
+                        unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'],
+                              $_SESSION['otp_masked_contact'], $_SESSION['otp_requested_email']);
+                        $step  = 'request';
+                        $error = "Too many incorrect attempts. Please request a new OTP.";
+                    } elseif (password_verify($otp, $record['reset_token'])) {
+                        // OTP correct — advance to reset-password
+                        $pdo->prepare(
+                            "UPDATE users
+                             SET reset_token = NULL, reset_expires = NULL,
+                                 otp_attempts = 0, otp_issued_at = NULL
+                             WHERE id = ?"
+                        )->execute([$userId]);
+
+                        $_SESSION['otp_reset_user_email'] = $record['email'];
+                        $_SESSION['otp_reset_user_name']  = $record['full_name'];
+
+                        unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'],
+                              $_SESSION['otp_masked_contact'], $_SESSION['otp_requested_email']);
+
+                        $_SESSION['otp_reset_user_id']  = $userId;
+                        $_SESSION['otp_reset_verified']  = true;
+                        $_SESSION['otp_reset_expires']   = time() + 900;
+
+                        csrf_rotate(); // State change: OTP verified
+                        redirect('reset-password.php');
+                    } else {
+                        // Incorrect OTP
+                        $pdo->prepare(
+                            "UPDATE users SET otp_attempts = otp_attempts + 1 WHERE id = ?"
+                        )->execute([$userId]);
+                        $attempts  = (int)$record['otp_attempts'] + 1;
+                        $remaining = 5 - $attempts;
+
+                        if ($remaining <= 0) {
+                            unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'],
+                                  $_SESSION['otp_masked_contact'], $_SESSION['otp_requested_email']);
+                            $error = "Too many incorrect attempts. Please request a new OTP.";
+                            $step  = 'request';
+                        } else {
+                            $error = "Incorrect code. {$remaining} attempt" . ($remaining === 1 ? '' : 's') . " remaining.";
+                            $step  = 'verify';
+                        }
+                    }
+                }
             } catch (PDOException $e) {
                 error_log("OTP verify error: " . $e->getMessage());
                 $step  = 'verify';
                 $error = "Verification failed. Please try again.";
             }
         }
-
-    // ── Resend OTP ───────────────────────────────────────────────
-    } elseif ($action === 'resend') {
-        unset($_SESSION['otp_user_id'], $_SESSION['otp_sent_at'], $_SESSION['otp_masked_contact']);
-        $step = 'request';
     }
 }
+
 
 $maskedContact = $_SESSION['otp_masked_contact'] ?? '';
 $page_title    = "Reset Password";

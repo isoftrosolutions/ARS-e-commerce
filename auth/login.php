@@ -10,37 +10,93 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
 
-    $mobile = trim($_POST['mobile'] ?? '');
+    $rawInput = trim($_POST['mobile'] ?? '');
     $password = $_POST['password'] ?? '';
+    $remember = !empty($_POST['remember']);
 
-    if (empty($mobile) || empty($password)) {
+    if (empty($rawInput) || empty($password)) {
         $error = "Please enter both credentials.";
     } else {
-        try {
-            $stmt = $pdo->prepare("SELECT id, full_name, email, mobile, password, role FROM users WHERE mobile = ? OR email = ?");
-            $stmt->execute([$mobile, $mobile]);
-            $user = $stmt->fetch();
+        // ── Rate Limiting: 5 failed attempts per IP per 15 minutes ──────────
+        $ip = get_client_ip();
+        $rlKey   = 'login_attempts_' . md5($ip);
+        $rlCount = $_SESSION[$rlKey] ?? 0;
+        $rlSince = $_SESSION[$rlKey . '_since'] ?? 0;
 
-            if ($user && password_verify($password, $user['password'])) {
-                session_regenerate_id(true);
+        // Reset window if 15 minutes have elapsed
+        if (time() - $rlSince > 900) {
+            $rlCount = 0;
+            $rlSince = time();
+        }
 
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['full_name'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['role'] = $user['role'];
-                $_SESSION['login_time'] = time();
+        if ($rlCount >= 5) {
+            $wait = ceil((900 - (time() - $rlSince)) / 60);
+            $error = "Too many failed login attempts. Please wait {$wait} minute(s) and try again.";
+        } else {
+            try {
+                // Normalize input: strip country code, non-digits for mobile;
+                // if it looks like an email keep as-is.
+                $normalizedInput = (strpos($rawInput, '@') !== false)
+                    ? strtolower($rawInput)
+                    : normalize_mobile($rawInput);
 
-                if ($user['role'] === 'admin') {
-                    redirect('../admin/dashboard.php', "Welcome back, Admin!");
+                $stmt = $pdo->prepare(
+                    "SELECT id, full_name, email, mobile, password, role FROM users
+                     WHERE mobile = ? OR email = ?"
+                );
+                $stmt->execute([$normalizedInput, $normalizedInput]);
+                $user = $stmt->fetch();
+
+                if ($user && password_verify($password, $user['password'])) {
+                    // Reset rate-limit on successful login
+                    unset($_SESSION[$rlKey], $_SESSION[$rlKey . '_since']);
+
+                    session_regenerate_id(true);
+                    csrf_rotate(); // Token rotation on state-change
+
+                    $_SESSION['user_id']    = $user['id'];
+                    $_SESSION['user_name']  = $user['full_name'];
+                    $_SESSION['user_email'] = $user['email'];
+                    $_SESSION['role']       = $user['role'];
+                    $_SESSION['login_time'] = time();
+
+                    // Remember-me: 30-day persistent cookie
+                    if ($remember) {
+                        $token = bin2hex(random_bytes(32));
+                        $expiry = time() + (30 * 24 * 3600);
+                        // Store hashed token in DB
+                        $pdo->prepare("UPDATE users SET remember_token = ? WHERE id = ?")
+                            ->execute([hash('sha256', $token), $user['id']]);
+                        $cookieParams = session_get_cookie_params();
+                        setcookie(
+                            'remember_me',
+                            $user['id'] . ':' . $token,
+                            $expiry,
+                            $cookieParams['path'] ?: '/',
+                            $cookieParams['domain'],
+                            $cookieParams['secure'],
+                            true // HttpOnly
+                        );
+                    }
+
+                    if ($user['role'] === 'admin') {
+                        redirect('../admin/dashboard.php', "Welcome back, Admin!");
+                    } else {
+                        redirect('../index.php', "Successfully logged in!");
+                    }
                 } else {
-                    redirect('../index.php', "Successfully logged in!");
+                    // Increment rate-limit counter on failure
+                    $_SESSION[$rlKey] = $rlCount + 1;
+                    $_SESSION[$rlKey . '_since'] = $rlSince ?: time();
+                    $remaining = 4 - $rlCount;
+                    $error = $remaining > 0
+                        ? "Invalid credentials. {$remaining} attempt(s) remaining before lockout."
+                        : "Invalid credentials. Too many failures — wait 15 minutes.";
                 }
-            } else {
-                $error = "Invalid credentials.";
+            } catch (PDOException $e) {
+                error_log("Login error: " . $e->getMessage());
+                $error = "Login failed. Please try again.";
             }
-        } catch (PDOException $e) {
-            error_log("Login error: " . $e->getMessage());
-            $error = "Login failed. Please try again.";
         }
     }
 }
@@ -617,7 +673,7 @@ $page_title = "Sign In";
                 <div class="field">
                     <input type="password" name="password" id="password"
                            placeholder=" "
-                           required minlength="8" autocomplete="current-password">
+                           required autocomplete="current-password">
                     <label for="password">Password</label>
                     <div class="field-line"></div>
                     <button type="button" class="toggle-pw" id="togglePassword" tabindex="-1" aria-label="Toggle password">

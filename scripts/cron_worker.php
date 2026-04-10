@@ -68,4 +68,19 @@ foreach ($jobs as $job) {
         echo "Error sending to {$job['recipient_email']}: {$errorMessage}\n";
     }
 }
+
+// 6. Database Maintenance: Clear expired reset tokens and OTP data
+try {
+    $pdo->prepare("
+        UPDATE users 
+        SET reset_token = NULL, 
+            reset_expires = NULL, 
+            otp_attempts = 0, 
+            otp_issued_at = NULL 
+        WHERE reset_expires < NOW() 
+          AND reset_token IS NOT NULL
+    ")->execute();
+} catch (PDOException $e) {
+    error_log("Cron database maintenance failed: " . $e->getMessage());
+}
 ?>

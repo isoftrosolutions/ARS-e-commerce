@@ -29,6 +29,7 @@ function redirect($url, $message = '', $type = 'success') {
         $_SESSION['msg_type'] = $type;
     }
     $safeUrl = filter_var($url, FILTER_SANITIZE_URL);
+    session_write_close(); // Ensure session is saved before redirecting
     header("Location: $safeUrl");
     exit();
 }

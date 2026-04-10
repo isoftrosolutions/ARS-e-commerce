@@ -29,9 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($password)) {
         $fieldErrors['password'] = 'Password is required.';
     } else {
-        $pwErrors = validate_password_strength($password);
-        if (!empty($pwErrors)) {
-            $fieldErrors['password'] = implode(', ', $pwErrors);
+        // Enforce strength in backend
+        $strengthErrors = validate_password_strength($password);
+        if (!empty($strengthErrors)) {
+            $fieldErrors['password'] = $strengthErrors[0]; // Take first error
         }
     }
 
@@ -48,13 +49,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare(
                 "UPDATE users
-                 SET password = ?, reset_token = NULL, reset_expires = NULL,
+                 SET password = ?, remember_token = NULL, reset_token = NULL, reset_expires = NULL,
                      reset_token_used_at = NOW(), otp_attempts = 0, otp_issued_at = NULL
                  WHERE id = ?"
             );
             $stmt->execute([$hashedPassword, $userId]);
 
             $pdo->commit();
+
+            csrf_rotate(); // Invalidate token after successful password change
+
+            // Send security alert email
+            $userEmail = $_SESSION['otp_reset_user_email'] ?? '';
+            $userName  = $_SESSION['otp_reset_user_name'] ?? 'User';
+            if ($userEmail) {
+                send_password_reset_notification($userEmail, $userName);
+            }
 
             // Invalidate any existing sessions from other tabs/devices
             session_regenerate_id(true);
@@ -63,7 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset(
                 $_SESSION['otp_reset_verified'],
                 $_SESSION['otp_reset_user_id'],
-                $_SESSION['otp_reset_expires']
+                $_SESSION['otp_reset_expires'],
+                $_SESSION['otp_reset_user_email'],
+                $_SESSION['otp_reset_user_name']
             );
 
             $success = true;
@@ -451,7 +463,7 @@ $page_title = "Set New Password";
                 <!-- New Password -->
                 <div class="field <?= isset($fieldErrors['password']) ? 'is-invalid' : '' ?>">
                     <input type="password" name="password" id="password"
-                           placeholder=" " required minlength="8"
+                           placeholder=" " required
                            autocomplete="new-password">
                     <label for="password">New password</label>
                     <div class="field-line"></div>
@@ -461,24 +473,24 @@ $page_title = "Set New Password";
                     <?php if (isset($fieldErrors['password'])): ?>
                     <div class="field-error"><i class="bi bi-exclamation-circle"></i><?= htmlspecialchars($fieldErrors['password']) ?></div>
                     <?php endif; ?>
-                    <!-- strength bar -->
-                    <div class="pw-strength-wrap" id="strengthWrap" style="display:none;">
-                        <div class="pw-strength-track"><div class="pw-strength-bar" id="strengthBar"></div></div>
-                        <div class="pw-strength-label" id="strengthLabel"></div>
+                    <!-- Strength bar -->
+                    <div class="pw-strength-wrap">
+                        <div class="pw-strength-track"><div class="pw-strength-bar"></div></div>
+                        <div class="pw-strength-label"></div>
                     </div>
-                    <!-- requirements checklist -->
-                    <div class="pw-rules" id="pwRules" style="display:none;">
-                        <div class="pw-rule" id="rule-len"><i class="bi bi-circle"></i> At least 8 characters</div>
-                        <div class="pw-rule" id="rule-upper"><i class="bi bi-circle"></i> One uppercase letter</div>
-                        <div class="pw-rule" id="rule-lower"><i class="bi bi-circle"></i> One lowercase letter</div>
-                        <div class="pw-rule" id="rule-num"><i class="bi bi-circle"></i> One number</div>
+                    <!-- Rules checklist -->
+                    <div class="pw-rules">
+                        <div class="pw-rule" id="rule-len"><i class="bi bi-circle"></i>At least 8 characters</div>
+                        <div class="pw-rule" id="rule-upper"><i class="bi bi-circle"></i>One uppercase letter</div>
+                        <div class="pw-rule" id="rule-lower"><i class="bi bi-circle"></i>One lowercase letter</div>
+                        <div class="pw-rule" id="rule-num"><i class="bi bi-circle"></i>One number</div>
                     </div>
                 </div>
 
                 <!-- Confirm Password -->
                 <div class="field <?= isset($fieldErrors['confirm_password']) ? 'is-invalid' : '' ?>">
                     <input type="password" name="confirm_password" id="confirm_password"
-                           placeholder=" " required minlength="8"
+                           placeholder=" " required
                            autocomplete="new-password">
                     <label for="confirm_password">Confirm password</label>
                     <div class="field-line"></div>
@@ -524,45 +536,41 @@ function setupToggle(btnId, inputId, iconId) {
 setupToggle('togglePw', 'password', 'togglePwIcon');
 setupToggle('toggleConfirm', 'confirm_password', 'toggleConfirmIcon');
 
-// ── Password strength & rules ──────────────────────────────────
-const pwInput     = document.getElementById('password');
-const strengthWrap = document.getElementById('strengthWrap');
-const strengthBar  = document.getElementById('strengthBar');
-const strengthLbl  = document.getElementById('strengthLabel');
-const pwRules      = document.getElementById('pwRules');
-
+// ── Live password strength meter + checklist ──────────────────
+const pwInput       = document.getElementById('password');
+const strengthTrack = document.querySelector('.pw-strength-track');
+const strengthBar   = document.querySelector('.pw-strength-bar');
+const strengthLabel = document.querySelector('.pw-strength-label');
 const rules = {
-    len:   { el: document.getElementById('rule-len'),   test: p => p.length >= 8 },
-    upper: { el: document.getElementById('rule-upper'), test: p => /[A-Z]/.test(p) },
-    lower: { el: document.getElementById('rule-lower'), test: p => /[a-z]/.test(p) },
-    num:   { el: document.getElementById('rule-num'),   test: p => /[0-9]/.test(p) },
+    len:   { el: document.getElementById('rule-len'),   test: v => v.length >= 8 },
+    upper: { el: document.getElementById('rule-upper'), test: v => /[A-Z]/.test(v) },
+    lower: { el: document.getElementById('rule-lower'), test: v => /[a-z]/.test(v) },
+    num:   { el: document.getElementById('rule-num'),   test: v => /[0-9]/.test(v) },
 };
 
-function updateStrength(pw) {
-    if (!pw) {
-        if (strengthWrap) strengthWrap.style.display = 'none';
-        if (pwRules)      pwRules.style.display = 'none';
-        return;
-    }
-    if (strengthWrap) strengthWrap.style.display = '';
-    if (pwRules)      pwRules.style.display = '';
+const levels = [
+    { pct: 25,  bg: '#ef4444', label: 'Weak' },
+    { pct: 50,  bg: '#f59e0b', label: 'Fair' },
+    { pct: 75,  bg: '#3b82f6', label: 'Good' },
+    { pct: 100, bg: '#22c55e', label: 'Strong' },
+];
 
-    let score = 0;
-    for (const [, r] of Object.entries(rules)) {
-        const ok = r.test(pw);
-        if (ok) score++;
-        if (r.el) r.el.className = 'pw-rule' + (ok ? ' ok' : '');
-    }
-    const colors = ['#ef4444','#f97316','#eab308','#16a34a'];
-    const labels = ['Weak','Fair','Good','Strong'];
-    if (strengthBar) {
-        strengthBar.style.width = (score * 25) + '%';
-        strengthBar.style.background = colors[score - 1] || '#e4d9d0';
-    }
-    if (strengthLbl) strengthLbl.textContent = labels[score - 1] || '';
+if (pwInput && strengthBar) {
+    pwInput.addEventListener('input', () => {
+        const val   = pwInput.value;
+        let passing = 0;
+        Object.values(rules).forEach(r => {
+            const ok = r.test(val);
+            if (r.el) r.el.classList.toggle('ok', ok);
+            if (ok) passing++;
+        });
+
+        const lvl = levels[passing - 1] || { pct: 0, bg: 'transparent', label: '' };
+        strengthBar.style.width      = lvl.pct + '%';
+        strengthBar.style.background = lvl.bg;
+        if (strengthLabel) strengthLabel.textContent = lvl.label;
+    });
 }
-
-pwInput?.addEventListener('input', e => updateStrength(e.target.value));
 
 // ── Submit loading state ──────────────────────────────────────
 const resetForm = document.getElementById('resetForm');

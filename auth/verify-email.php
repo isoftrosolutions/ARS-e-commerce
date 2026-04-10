@@ -12,39 +12,41 @@ $success = false;
 if (empty($token)) {
     $error = "Invalid verification link.";
 } elseif (strlen($token) !== 64 || !ctype_xdigit($token)) {
-    // Validate token format (should be 64 hex characters from bin2hex)
+    // Token must be a 64-char hex string (bin2hex of 32 bytes)
     $error = "Invalid verification link format.";
 } else {
     try {
         // Hash the token from URL to compare with stored hash
         $tokenHash = hash('sha256', $token);
-        
-        $stmt = $pdo->prepare("SELECT id, full_name, email, is_verified FROM users WHERE verification_token = ? AND verification_expires > NOW() AND is_verified = 0 LIMIT 1");
+
+        // Find user where token matches AND email not yet verified
+        $stmt = $pdo->prepare(
+            "SELECT id, full_name, email, email_verified_at
+             FROM users
+             WHERE verification_token = ?
+             LIMIT 1"
+        );
         $stmt->execute([$tokenHash]);
         $user = $stmt->fetch();
-        
+
         if (!$user) {
-            // Check if token exists but user already verified
-            $stmt2 = $pdo->prepare("SELECT id, is_verified FROM users WHERE verification_token = ?");
-            $stmt2->execute([$tokenHash]);
-            $existingUser = $stmt2->fetch();
-            
-            if ($existingUser && $existingUser['is_verified']) {
-                $success = true;
-                $alreadyVerified = true;
-            } else {
-                $error = "This verification link has expired or is invalid. Please register again.";
-            }
+            $error = "This verification link is invalid or has already been used.";
+        } elseif ($user['email_verified_at'] !== null) {
+            // Already verified — treat as success
+            $success = true;
+            $alreadyVerified = true;
         } else {
-            $updateStmt = $pdo->prepare("UPDATE users SET is_verified = 1, verification_token = NULL, verification_expires = NULL WHERE id = ?");
+            // Mark as verified right now
+            $updateStmt = $pdo->prepare(
+                "UPDATE users
+                 SET email_verified_at = NOW(), verification_token = NULL
+                 WHERE id = ?"
+            );
             $updateStmt->execute([$user['id']]);
             $success = true;
-            
-            // Clear any dev tokens
-            if (isset($_SESSION['dev_verify_token'])) {
-                unset($_SESSION['dev_verify_token']);
-                unset($_SESSION['dev_verify_email']);
-            }
+
+            // Clear any dev-mode token from session
+            unset($_SESSION['dev_verify_token'], $_SESSION['dev_verify_email']);
         }
     } catch (PDOException $e) {
         error_log("Email verification error: " . $e->getMessage());

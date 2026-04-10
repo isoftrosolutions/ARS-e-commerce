@@ -75,10 +75,12 @@ img { display: block; }
 /* ═══ HERO ════════════════════════════════════════════════════ */
 #hero {
   position: relative;
-  height: 100vh; min-height: 620px;
+  height: 100vh; height: 100dvh;
+  min-height: 620px;
   display: flex; align-items: center;
   overflow: hidden;
   background: url('assets/hero background.png') center center / cover no-repeat;
+  background-attachment: fixed;
 }
 #hero-canvas {
   position: absolute; inset: 0;
@@ -548,6 +550,12 @@ img { display: block; }
 
 /* ═══ Responsive ══════════════════════════════════════════════ */
 @media (max-width: 991px) {
+  #hero {
+    height: auto; min-height: 100vh; min-height: 100svh;
+    padding: 120px 0 80px;
+    background-attachment: scroll;
+    background-position: center center;
+  }
   .hero-3d-scene { display: none !important; }
   .hero-stats { gap: 18px; }
   .feat-row { flex-wrap: wrap; }
@@ -914,8 +922,11 @@ img { display: block; }
   let pts = [];
 
   function resize(){
-    W = canvas.width  = canvas.offsetWidth;
-    H = canvas.height = canvas.offsetHeight;
+    const dpr = window.devicePixelRatio || 1;
+    W = canvas.width  = canvas.offsetWidth * dpr;
+    H = canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+    W /= dpr; H /= dpr;
     // Reset particles on resize
     pts = Array.from({ length: COUNT }, () => ({
       x: Math.random() * W,
@@ -1032,7 +1043,13 @@ img { display: block; }
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let W, H, t = 0;
-  function resize(){ W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
+  function resize(){
+    const dpr = window.devicePixelRatio || 1;
+    W = canvas.width  = canvas.offsetWidth * dpr;
+    H = canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+    W /= dpr; H /= dpr;
+  }
   resize();
   window.addEventListener('resize', resize, { passive: true });
   function draw(){

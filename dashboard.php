@@ -129,7 +129,12 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                                         </div>
                                     </div>
                                     <div class="flex-grow-1 ms-3">
-                                        <h3 class="mb-0"><?= number_format($pdo->prepare("SELECT COUNT(*) FROM orders WHERE user_id = ? AND delivery_status = 'Pending'")->execute([$user_id]) ? 1 : 0) ?></h3>
+                                        <?php
+                                        $qPending = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE user_id = ? AND delivery_status = 'Pending'");
+                                        $qPending->execute([$user_id]);
+                                        $pending_count = (int)$qPending->fetchColumn();
+                                        ?>
+                                        <h3 class="mb-0"><?= number_format($pending_count) ?></h3>
                                         <p class="text-muted mb-0 small">Pending Orders</p>
                                     </div>
                                 </div>
@@ -146,7 +151,12 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                                         </div>
                                     </div>
                                     <div class="flex-grow-1 ms-3">
-                                        <h3 class="mb-0"><?= number_format($pdo->prepare("SELECT COUNT(*) FROM wishlist WHERE user_id = ?")->execute([$user_id]) ? 1 : 0) ?></h3>
+                                        <?php
+                                        $qWishList = $pdo->prepare("SELECT COUNT(*) FROM wishlist WHERE user_id = ?");
+                                        $qWishList->execute([$user_id]);
+                                        $wish_count = (int)$qWishList->fetchColumn();
+                                        ?>
+                                        <h3 class="mb-0"><?= number_format($wish_count) ?></h3>
                                         <p class="text-muted mb-0 small">Wishlist Items</p>
                                     </div>
                                 </div>
