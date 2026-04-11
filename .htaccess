@@ -15,7 +15,7 @@ RewriteCond %{REQUEST_URI} /(.+)/$
 RewriteRule ^ /%1 [R=301,L]
 
 # Block access to sensitive directories
-RewriteRule ^ARS/(config|vendor|scripts|includes)/.*$ - [F,L]
+RewriteRule ^(config|vendor|scripts|includes)/.*$ - [F,L]
 
 # ── Gzip Compression ─────────────────────────────────────────────────────────
 <IfModule mod_deflate.c>
@@ -41,9 +41,9 @@ RewriteRule ^ARS/(config|vendor|scripts|includes)/.*$ - [F,L]
 </IfModule>
 
 # Custom error pages
-ErrorDocument 404 /ARS/404.php
-ErrorDocument 500 /ARS/500.php
-ErrorDocument 403 /ARS/404.php
+ErrorDocument 404 /404.php
+ErrorDocument 500 /500.php
+ErrorDocument 403 /404.php
 
 # Security Headers
 <IfModule mod_headers.c>

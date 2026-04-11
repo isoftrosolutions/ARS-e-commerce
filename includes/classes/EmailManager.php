@@ -103,7 +103,8 @@ class EmailManager {
     private function triggerAsyncWorker() {
         if (isset($_SERVER['HTTP_HOST'])) {
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
-            $url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/ARS/process_queue_async.php";
+            $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : $protocol . "://" . $_SERVER['HTTP_HOST'];
+            $url = $baseUrl . "/process_queue_async.php";
             
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);

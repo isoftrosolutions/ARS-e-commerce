@@ -51,7 +51,7 @@ function require_csrf(): void {
                 // Derive fallback from SITE_URL constant if available, otherwise guess.
                 $basePath = defined('SITE_URL')
                     ? rtrim(parse_url(SITE_URL, PHP_URL_PATH), '/') . '/auth/login.php'
-                    : '/ARS/auth/login.php';
+                    : '/auth/login.php';
                 $safe = $origin . $basePath;
             }
             redirect($safe, 'Your session expired. Please try again.', 'danger');
