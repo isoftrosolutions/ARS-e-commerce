@@ -178,4 +178,33 @@ return [
             </div>
         </div>'
     ],
+
+    /* -------------------------------------------------------------------------- */
+    /* 6. NEW CONTACT FORM MESSAGE (ADMIN NOTIFICATION)                           */
+    /* -------------------------------------------------------------------------- */
+    'new_contact_message' => [
+        'subject' => 'New Contact Message from {{sender_name}}',
+        'content_html' => '
+        <div style="background-color:#fdfaf7;padding:40px 20px;font-family:sans-serif;color:#1a0e05;line-height:1.6;">
+            <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.05);border:1px solid #e4d9d0;">
+                <div style="background:#130c06;padding:30px;text-align:center;">
+                    <h1 style="color:#ffffff;margin:0;font-family:serif;font-size:24px;letter-spacing:2px;">ARS<span style="color:#ea580c;">SHOP</span></h1>
+                </div>
+                <div style="padding:40px 30px;">
+                    <h2 style="font-family:serif;font-size:26px;margin-bottom:20px;color:#130c06;">New Contact Message</h2>
+                    <table style="width:100%;border-collapse:collapse;font-size:15px;">
+                        <tr><td style="padding:10px 0;color:#a89688;width:100px;">From:</td><td style="padding:10px 0;color:#1a0e05;font-weight:600;">{{sender_name}}</td></tr>
+                        <tr><td style="padding:10px 0;color:#a89688;">Email:</td><td style="padding:10px 0;"><a href="mailto:{{sender_email}}" style="color:#ea580c;">{{sender_email}}</a></td></tr>
+                        <tr><td style="padding:10px 0;color:#a89688;">Subject:</td><td style="padding:10px 0;color:#1a0e05;">{{subject}}</td></tr>
+                    </table>
+                    <div style="background:#fdfaf7;border-left:3px solid #ea580c;padding:20px;margin-top:20px;border-radius:0 8px 8px 0;">
+                        <p style="margin:0;color:#1a0e05;white-space:pre-wrap;">{{message}}</p>
+                    </div>
+                </div>
+                <div style="padding:20px 30px;background:#130c06;color:#a89688;font-size:12px;text-align:center;">
+                    <p style="margin:0;">&copy; ' . date('Y') . ' ARS E-Commerce. Nepal</p>
+                </div>
+            </div>
+        </div>'
+    ],
 ];

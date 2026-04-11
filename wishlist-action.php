@@ -6,9 +6,22 @@ if (!is_logged_in()) {
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
+// CSRF: accept token from GET param (link clicks) or X-CSRF-TOKEN header (XHR)
+$csrfToken = $_GET['csrf_token']
+    ?? $_SERVER['HTTP_X_CSRF_TOKEN']
+    ?? '';
+if (!validate_csrf($csrfToken)) {
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid request. Please refresh and try again.']);
+    } else {
+        redirect('shop.php', 'Invalid request. Please try again.', 'danger');
+    }
+    exit;
+}
+
+$user_id    = $_SESSION['user_id'];
 $product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$action = isset($_GET['action']) ? $_GET['action'] : 'toggle';
+$action     = isset($_GET['action']) ? $_GET['action'] : 'toggle';
 
 if (!$product_id) {
     redirect('shop.php');
@@ -44,10 +57,11 @@ try {
     }
 
 } catch (PDOException $e) {
+    error_log("Wishlist error: " . $e->getMessage());
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        echo json_encode(['status' => 'error', 'message' => 'Something went wrong. Please try again.']);
     } else {
-        redirect('shop.php', "Error: " . $e->getMessage(), "danger");
+        redirect('shop.php', 'Something went wrong. Please try again.', 'danger');
     }
 }
 ?>

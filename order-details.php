@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/functions.php';
 if (!is_logged_in()) {
     redirect('auth/login.php', "Please login to view order details.", "info");
 }
+no_cache();
 
 $order_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 

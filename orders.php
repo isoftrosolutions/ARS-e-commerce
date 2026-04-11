@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/functions.php';
 if (!is_logged_in()) {
     redirect('auth/login.php', "Please login to view your orders.", "info");
 }
+no_cache();
 
 try {
     $user_id = $_SESSION['user_id'];
@@ -13,7 +14,8 @@ try {
     $all_orders = $stmt->fetchAll();
 
 } catch (PDOException $e) {
-    die("Orders Error: " . $e->getMessage());
+    error_log("Orders page error for user {$user_id}: " . $e->getMessage());
+    redirect('index.php', 'Something went wrong loading your orders. Please try again.', 'danger');
 }
 
 $page_title = "My Orders History";

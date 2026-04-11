@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/functions.php';
 if (!is_logged_in()) {
     redirect('auth/login.php', "Please login to view your wishlist.", "info");
 }
+no_cache();
 
 try {
     $user_id = $_SESSION['user_id'];
@@ -99,7 +100,7 @@ require_once __DIR__ . '/includes/header-bootstrap.php';
                                                 -<?= round(($item['price'] - $item['discount_price']) / $item['price'] * 100) ?>%
                                             </span>
                                         <?php endif; ?>
-                                        <a href="wishlist-action.php?action=remove&id=<?= $item['id'] ?>" 
+                                        <a href="wishlist-action.php?action=remove&id=<?= $item['product_id'] ?>&csrf_token=<?= htmlspecialchars(csrf_token()) ?>"
                                            class="btn btn-light btn-sm rounded-circle position-absolute top-0 end-0 m-2 shadow-sm">
                                             <i class="bi bi-x-lg"></i>
                                         </a>

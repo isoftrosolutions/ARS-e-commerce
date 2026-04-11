@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/includes/classes/EmailManager.php';
             $emailMgr = new EmailManager($pdo);
             $emailMgr->queue(env('SMTP_FROM_EMAIL'), 'Admin', 'new_contact_message', [
-                'name' => $name,
-                'email' => $email,
-                'subject' => $subject,
-                'message' => $message
+                'sender_name'  => $name,
+                'sender_email' => $email,
+                'subject'      => $subject ?: '(no subject)',
+                'message'      => $message,
             ]);
             
             $success = true;

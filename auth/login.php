@@ -79,6 +79,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
                     }
 
+                    // Record session in user_sessions for tracking
+                    try {
+                        $pdo->prepare(
+                            "INSERT INTO user_sessions (user_id, session_id, ip_address, user_agent)
+                             VALUES (?, ?, ?, ?)
+                             ON DUPLICATE KEY UPDATE last_activity = NOW()"
+                        )->execute([
+                            $user['id'],
+                            session_id(),
+                            get_client_ip(),
+                            substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
+                        ]);
+                    } catch (PDOException $e) {
+                        error_log("user_sessions insert failed: " . $e->getMessage());
+                    }
+
                     if ($user['role'] === 'admin') {
                         redirect('../admin/dashboard.php', "Welcome back, Admin!");
                     } else {
@@ -713,6 +729,16 @@ $page_title = "Sign In";
 </div>
 
 <script>
+    // Submit loading state — prevents double-submit
+    const loginForm = document.querySelector('form');
+    const loginBtn  = loginForm?.querySelector('.btn-submit');
+    if (loginForm && loginBtn) {
+        loginForm.addEventListener('submit', () => {
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span>Signing in…</span>';
+        });
+    }
+
     // Password toggle
     const toggleBtn  = document.getElementById('togglePassword');
     const pwInput    = document.getElementById('password');

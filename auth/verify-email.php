@@ -87,14 +87,6 @@ require_once __DIR__ . '/../includes/header-bootstrap.php';
                                 : 'Your email has been successfully verified. You can now login to your account.' ?>
                         </p>
                         
-                        <?php if (isset($_SESSION['dev_verify_token']) && isset($_SESSION['dev_verify_email'])): ?>
-                            <div class="alert alert-warning text-start" role="alert">
-                                <strong class="d-block mb-2">DEV MODE - Email not configured:</strong>
-                                <small class="d-block mb-1">Email: <?= htmlspecialchars($_SESSION['dev_verify_email']) ?></small>
-                                <small class="d-block text-break mb-2">Token: <?= htmlspecialchars($_SESSION['dev_verify_token']) ?></small>
-                                <a href="verify-email.php?token=<?= htmlspecialchars($_SESSION['dev_verify_token']) ?>" class="fw-bold">Click to verify</a>
-                            </div>
-                        <?php endif; ?>
                         
                         <a href="login.php" class="btn btn-primary w-100 py-2 fw-bold">
                             Login Now

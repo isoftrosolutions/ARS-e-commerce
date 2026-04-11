@@ -56,6 +56,18 @@ function display_message() {
     }
 }
 
+/**
+ * Send cache-busting headers so browsers do not cache protected pages.
+ * Call at the top of any page that requires login.
+ */
+function no_cache(): void {
+    if (!headers_sent()) {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+    }
+}
+
 function is_logged_in(): bool {
     return isset($_SESSION['user_id']);
 }

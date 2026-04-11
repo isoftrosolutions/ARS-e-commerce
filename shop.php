@@ -207,7 +207,7 @@ if ($category_id > 0) {
                                             -<?= round((($p['price'] - $p['discount_price']) / $p['price']) * 100) ?>%
                                         </span>
                                     <?php endif; ?>
-                                    <a href="wishlist-action.php?action=<?= $has_wishlist ? 'remove' : 'add' ?>&id=<?= $p['id'] ?>" 
+                                    <a href="wishlist-action.php?action=<?= $has_wishlist ? 'remove' : 'add' ?>&id=<?= $p['id'] ?>&csrf_token=<?= htmlspecialchars(csrf_token()) ?>"
                                        class="btn btn-light btn-sm rounded-circle position-absolute top-0 end-0 m-2 z-1 shadow-sm <?= $has_wishlist ? 'text-danger' : '' ?>">
                                         <i class="bi bi-heart<?= $has_wishlist ? '-fill' : '' ?>"></i>
                                     </a>

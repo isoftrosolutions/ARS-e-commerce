@@ -45,19 +45,20 @@ try {
     $user_id = $_SESSION['user_id'];
     
     $checkPurchase = $pdo->prepare("
-        SELECT o.id FROM orders o 
-        JOIN order_items oi ON o.id = oi.order_id 
+        SELECT o.id FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
         WHERE o.user_id = ? AND oi.product_id = ? AND o.delivery_status = 'Delivered'
         LIMIT 1
     ");
     $checkPurchase->execute([$user_id, $product_id]);
-    $hasPurchased = (bool)$checkPurchase->fetch();
-    
+    $purchaseRow  = $checkPurchase->fetch();
+    $hasPurchased = (bool)$purchaseRow;
+
     $stmt = $pdo->prepare("
-        INSERT INTO product_reviews (product_id, user_id, order_id, rating, comment, status) 
+        INSERT INTO product_reviews (product_id, user_id, order_id, rating, comment, status)
         VALUES (?, ?, ?, ?, ?, 'pending')
     ");
-    $stmt->execute([$product_id, $user_id, $hasPurchased ? $checkPurchase->fetch()['id'] : null, $rating, $comment]);
+    $stmt->execute([$product_id, $user_id, $hasPurchased ? $purchaseRow['id'] : null, $rating, $comment]);
     
     echo json_encode([
         'success' => true, 

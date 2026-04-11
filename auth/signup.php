@@ -794,7 +794,7 @@ $page_title = "Create Account";
 </div>
 
 <script>
-    // Password toggles
+    // ── Password toggles ───────────────────────────────────────
     function setupToggle(btnId, inputId) {
         const btn = document.getElementById(btnId);
         const inp = document.getElementById(inputId);
@@ -807,6 +807,71 @@ $page_title = "Create Account";
     }
     setupToggle('togglePassword', 'password');
     setupToggle('toggleConfirmPassword', 'confirm_password');
+
+    // ── Live password strength checklist ───────────────────────
+    const pwInput = document.getElementById('password');
+    const pwField = pwInput?.closest('.field');
+
+    // Inject checklist + bar after the password toggle button
+    if (pwField) {
+        const rulesHtml = `
+            <div class="pw-strength" id="pwStrengthWrap" style="margin-top:.4rem;">
+                <div style="height:3px;border-radius:2px;background:#e4d9d0;overflow:hidden;">
+                    <div id="pwBar" style="height:100%;width:0;border-radius:2px;transition:width .35s ease,background .35s ease;"></div>
+                </div>
+                <div id="pwLabel" style="font-size:.65rem;color:#a89688;margin-top:.25rem;letter-spacing:.05em;text-transform:uppercase;"></div>
+            </div>
+            <div id="pwRules" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.2rem;">
+                <div class="pw-rule" id="rule-len"  style="display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#a89688;"><i class="bi bi-circle" style="font-size:.65rem;"></i>At least 8 characters</div>
+                <div class="pw-rule" id="rule-up"   style="display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#a89688;"><i class="bi bi-circle" style="font-size:.65rem;"></i>One uppercase letter</div>
+                <div class="pw-rule" id="rule-low"  style="display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#a89688;"><i class="bi bi-circle" style="font-size:.65rem;"></i>One lowercase letter</div>
+                <div class="pw-rule" id="rule-num"  style="display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#a89688;"><i class="bi bi-circle" style="font-size:.65rem;"></i>One number</div>
+            </div>`;
+        pwField.insertAdjacentHTML('beforeend', rulesHtml);
+
+        const pwBar   = document.getElementById('pwBar');
+        const pwLabel = document.getElementById('pwLabel');
+        const rules   = {
+            'rule-len': v => v.length >= 8,
+            'rule-up':  v => /[A-Z]/.test(v),
+            'rule-low': v => /[a-z]/.test(v),
+            'rule-num': v => /[0-9]/.test(v),
+        };
+        const levels = [
+            { pct: 25,  bg: '#ef4444', label: 'Weak'   },
+            { pct: 50,  bg: '#f59e0b', label: 'Fair'   },
+            { pct: 75,  bg: '#3b82f6', label: 'Good'   },
+            { pct: 100, bg: '#22c55e', label: 'Strong' },
+        ];
+
+        pwInput.addEventListener('input', () => {
+            const val = pwInput.value;
+            let passing = 0;
+            for (const [id, test] of Object.entries(rules)) {
+                const el = document.getElementById(id);
+                const ok = test(val);
+                if (ok) passing++;
+                if (el) {
+                    el.style.color = ok ? '#16a34a' : '#a89688';
+                    el.querySelector('i').className = ok ? 'bi bi-check-circle-fill' : 'bi bi-circle';
+                    el.querySelector('i').style.fontSize = '.65rem';
+                }
+            }
+            const lvl = levels[passing - 1] || { pct: 0, bg: 'transparent', label: '' };
+            if (pwBar)   { pwBar.style.width = lvl.pct + '%'; pwBar.style.background = lvl.bg; }
+            if (pwLabel) pwLabel.textContent = lvl.label;
+        });
+    }
+
+    // ── Submit loading state — prevents double-submit ──────────
+    const signupForm = document.querySelector('form');
+    const signupBtn  = signupForm?.querySelector('.btn-submit');
+    if (signupForm && signupBtn) {
+        signupForm.addEventListener('submit', () => {
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = '<span>Creating account…</span>';
+        });
+    }
 </script>
 </body>
 </html>

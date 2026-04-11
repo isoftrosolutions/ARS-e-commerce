@@ -18,6 +18,16 @@ if (isset($_COOKIE['remember_me'])) {
               $cookieParams['domain'], $cookieParams['secure'], true);
 }
 
+// Remove this session from user_sessions tracking table
+if (isset($_SESSION['user_id'])) {
+    try {
+        $pdo->prepare("DELETE FROM user_sessions WHERE user_id = ? AND session_id = ?")
+            ->execute([$_SESSION['user_id'], session_id()]);
+    } catch (PDOException $e) {
+        error_log("Logout: failed to clear user_session: " . $e->getMessage());
+    }
+}
+
 // Clear session data in memory
 $_SESSION = [];
 

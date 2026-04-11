@@ -3,10 +3,11 @@
 # Environment — never commit credentials
 .env
 
-# IDE
+# IDE & local tooling
 .idea/
 .vscode/
 *.sublime-*
+.claude/
 
 # OS files
 .DS_Store

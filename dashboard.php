@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/functions.php';
 if (!is_logged_in()) {
     redirect('auth/login.php', "Please login to access your dashboard.", "info");
 }
+no_cache();
 
 try {
     $user_id = $_SESSION['user_id'];
@@ -21,7 +22,8 @@ try {
     $recent_orders = $stmt_recent->fetchAll();
 
 } catch (PDOException $e) {
-    die("Dashboard Error: " . $e->getMessage());
+    error_log("Dashboard error for user {$user_id}: " . $e->getMessage());
+    redirect('index.php', 'Something went wrong loading your dashboard. Please try again.', 'danger');
 }
 
 $page_title = "My Account Dashboard";
